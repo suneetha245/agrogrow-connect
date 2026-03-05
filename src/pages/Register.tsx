@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import LanguageSelector from "@/components/LanguageSelector";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, UserPlus, Sprout, ShoppingBag, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import logo from "@/assets/logo.png";
 
 type UserType = "farmer" | "customer";
@@ -15,43 +16,71 @@ type UserType = "farmer" | "customer";
 const Register = () => {
   const { t } = useLanguage();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [userType, setUserType] = useState<UserType>("farmer");
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
-    fullName: "",
-    email: "",
-    phone: "",
-    address: "",
-    district: "",
-    state: "",
-    pincode: "",
-    password: "",
-    confirmPassword: "",
-    farmSize: "",
-    cropTypes: "",
+    fullName: "", email: "", phone: "", address: "", district: "", state: "", pincode: "",
+    password: "", confirmPassword: "", farmSize: "", cropTypes: "",
   });
 
   const updateField = (key: string, value: string) => setForm((prev) => ({ ...prev, [key]: value }));
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.fullName || !form.email || !form.phone) {
+    if (!form.fullName || !form.email || !form.phone || !form.password) {
       toast({ title: "Please fill all required fields", variant: "destructive" });
       return;
     }
-    if (userType === "customer" && form.password !== form.confirmPassword) {
+    if (form.password !== form.confirmPassword) {
       toast({ title: "Passwords do not match", variant: "destructive" });
       return;
     }
+    if (form.password.length < 6) {
+      toast({ title: "Password must be at least 6 characters", variant: "destructive" });
+      return;
+    }
+
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
+
+    const { error } = await supabase.auth.signUp({
+      email: form.email,
+      password: form.password,
+      options: {
+        emailRedirectTo: window.location.origin,
+        data: {
+          full_name: form.fullName,
+          phone: form.phone,
+          address: form.address,
+          district: form.district,
+          state: form.state,
+          pincode: form.pincode,
+          role: userType,
+          farm_size: form.farmSize,
+          crop_types: form.cropTypes,
+        },
+      },
+    });
+
+    setLoading(false);
+
+    if (error) {
+      toast({ title: error.message, variant: "destructive" });
+      return;
+    }
+
+    if (userType === "farmer") {
       toast({
-        title: userType === "farmer"
-          ? "Registration submitted! Your account will be reviewed by admin."
-          : "Account created successfully!",
+        title: "Registration submitted!",
+        description: "Your account will be reviewed by admin. You'll receive a confirmation email.",
       });
-    }, 1000);
+    } else {
+      toast({
+        title: "Account created successfully!",
+        description: "Please check your email to verify your account.",
+      });
+    }
+    navigate("/login");
   };
 
   return (
@@ -62,7 +91,6 @@ const Register = () => {
 
       <div className="w-full max-w-lg">
         <div className="bg-card rounded-2xl shadow-card border border-border p-8 space-y-6">
-          {/* Header */}
           <div className="text-center space-y-2">
             <div className="flex justify-center mb-4">
               <img src={logo} alt="AgroAssist" className="h-14 w-14 rounded-xl" />
@@ -71,35 +99,21 @@ const Register = () => {
             <p className="text-muted-foreground">{t("registerSubtitle")}</p>
           </div>
 
-          {/* User Type Toggle */}
           <div className="flex rounded-xl border border-border overflow-hidden">
-            <button
-              type="button"
-              onClick={() => setUserType("farmer")}
+            <button type="button" onClick={() => setUserType("farmer")}
               className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-heading font-bold transition-colors ${
-                userType === "farmer"
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-card text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <Sprout className="h-4 w-4" />
-              {t("registerAsFarmer")}
+                userType === "farmer" ? "bg-primary text-primary-foreground" : "bg-card text-muted-foreground hover:text-foreground"
+              }`}>
+              <Sprout className="h-4 w-4" /> {t("registerAsFarmer")}
             </button>
-            <button
-              type="button"
-              onClick={() => setUserType("customer")}
+            <button type="button" onClick={() => setUserType("customer")}
               className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-heading font-bold transition-colors ${
-                userType === "customer"
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-card text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <ShoppingBag className="h-4 w-4" />
-              {t("registerAsCustomer")}
+                userType === "customer" ? "bg-primary text-primary-foreground" : "bg-card text-muted-foreground hover:text-foreground"
+              }`}>
+              <ShoppingBag className="h-4 w-4" /> {t("registerAsCustomer")}
             </button>
           </div>
 
-          {/* Farmer notice */}
           {userType === "farmer" && (
             <div className="flex gap-3 p-4 rounded-xl bg-accent/20 border border-accent/30">
               <AlertCircle className="h-5 w-5 text-accent-foreground flex-shrink-0 mt-0.5" />
@@ -107,7 +121,6 @@ const Register = () => {
             </div>
           )}
 
-          {/* Form */}
           <form onSubmit={handleRegister} className="space-y-4">
             <div className="grid sm:grid-cols-2 gap-4">
               <div className="space-y-2 sm:col-span-2">
@@ -152,18 +165,14 @@ const Register = () => {
                 </>
               )}
 
-              {userType === "customer" && (
-                <>
-                  <div className="space-y-2">
-                    <Label className="font-medium">{t("password")} *</Label>
-                    <Input type="password" value={form.password} onChange={(e) => updateField("password", e.target.value)} className="h-11" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="font-medium">{t("confirmPassword")} *</Label>
-                    <Input type="password" value={form.confirmPassword} onChange={(e) => updateField("confirmPassword", e.target.value)} className="h-11" />
-                  </div>
-                </>
-              )}
+              <div className="space-y-2">
+                <Label className="font-medium">{t("password")} *</Label>
+                <Input type="password" value={form.password} onChange={(e) => updateField("password", e.target.value)} className="h-11" />
+              </div>
+              <div className="space-y-2">
+                <Label className="font-medium">{t("confirmPassword")} *</Label>
+                <Input type="password" value={form.confirmPassword} onChange={(e) => updateField("confirmPassword", e.target.value)} className="h-11" />
+              </div>
             </div>
 
             <Button type="submit" className="w-full h-12 font-heading font-bold text-base gap-2" disabled={loading}>
@@ -172,7 +181,6 @@ const Register = () => {
             </Button>
           </form>
 
-          {/* Link */}
           <div className="text-center text-sm">
             <p className="text-muted-foreground">
               {t("haveAccount")}{" "}
