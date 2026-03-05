@@ -1,7 +1,12 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAuth } from "@/contexts/AuthContext";
 import LanguageSelector from "@/components/LanguageSelector";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import { Sprout, Bug, Landmark, Users, PlusCircle, User, LogOut, MessageSquare } from "lucide-react";
 import logo from "@/assets/logo.png";
 
@@ -15,7 +20,38 @@ const tabs = [
 
 const FarmerDashboard = () => {
   const { t } = useLanguage();
+  const { user, profile, signOut } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("crop");
+  const [productForm, setProductForm] = useState({ name: "", quantity: "", price: "", freshnessDays: "" });
+  const [addingProduct, setAddingProduct] = useState(false);
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate("/");
+  };
+
+  const handleAddProduct = async () => {
+    if (!productForm.name || !productForm.quantity || !productForm.price || !user) return;
+    setAddingProduct(true);
+
+    const { error } = await supabase.from("products").insert({
+      farmer_id: user.id,
+      name: productForm.name,
+      quantity: productForm.quantity,
+      price: parseFloat(productForm.price),
+      freshness_days: productForm.freshnessDays ? parseInt(productForm.freshnessDays) : null,
+    });
+
+    setAddingProduct(false);
+    if (error) {
+      toast({ title: "Failed to add product", variant: "destructive" });
+    } else {
+      toast({ title: "Product added successfully!" });
+      setProductForm({ name: "", quantity: "", price: "", freshnessDays: "" });
+    }
+  };
 
   const renderContent = () => {
     switch (activeTab) {
@@ -80,7 +116,6 @@ const FarmerDashboard = () => {
               <div className="text-center text-muted-foreground">
                 <Users className="h-12 w-12 mx-auto mb-4" />
                 <p className="font-medium">Community chat coming soon!</p>
-                <p className="text-sm mt-1">Connect with fellow farmers here.</p>
               </div>
             </div>
           </div>
@@ -90,15 +125,13 @@ const FarmerDashboard = () => {
           <div className="space-y-6">
             <h2 className="text-2xl font-heading font-black text-foreground">{t("addProduct")}</h2>
             <div className="max-w-md space-y-4">
-              <div className="border-2 border-dashed border-border rounded-xl p-8 text-center">
-                <PlusCircle className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
-                <p className="text-muted-foreground text-sm">Upload product image</p>
-              </div>
-              <input placeholder="Product Name" className="w-full h-11 px-4 border border-input rounded-lg bg-background text-foreground" />
-              <input placeholder="Quantity (kg)" className="w-full h-11 px-4 border border-input rounded-lg bg-background text-foreground" />
-              <input placeholder="Price (₹)" className="w-full h-11 px-4 border border-input rounded-lg bg-background text-foreground" />
-              <input type="date" className="w-full h-11 px-4 border border-input rounded-lg bg-background text-foreground" />
-              <Button className="w-full h-12 font-heading font-bold">Add Product</Button>
+              <Input placeholder="Product Name" value={productForm.name} onChange={(e) => setProductForm(p => ({...p, name: e.target.value}))} className="h-11" />
+              <Input placeholder="Quantity (e.g. 50 kg)" value={productForm.quantity} onChange={(e) => setProductForm(p => ({...p, quantity: e.target.value}))} className="h-11" />
+              <Input placeholder="Price (₹)" type="number" value={productForm.price} onChange={(e) => setProductForm(p => ({...p, price: e.target.value}))} className="h-11" />
+              <Input placeholder="Freshness (days)" type="number" value={productForm.freshnessDays} onChange={(e) => setProductForm(p => ({...p, freshnessDays: e.target.value}))} className="h-11" />
+              <Button className="w-full h-12 font-heading font-bold" onClick={handleAddProduct} disabled={addingProduct}>
+                {addingProduct ? "Adding..." : "Add Product"}
+              </Button>
             </div>
           </div>
         );
@@ -109,7 +142,6 @@ const FarmerDashboard = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Top bar */}
       <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur">
         <div className="container flex h-14 items-center justify-between">
           <div className="flex items-center gap-2">
@@ -118,15 +150,8 @@ const FarmerDashboard = () => {
           </div>
           <div className="flex items-center gap-2">
             <LanguageSelector />
-            <Button variant="ghost" size="sm" className="gap-1">
-              <User className="h-4 w-4" />
-              <span className="hidden sm:inline">{t("profile")}</span>
-            </Button>
-            <Button variant="ghost" size="sm" className="gap-1">
-              <MessageSquare className="h-4 w-4" />
-              <span className="hidden sm:inline">{t("feedback")}</span>
-            </Button>
-            <Button variant="ghost" size="sm" className="gap-1 text-destructive">
+            <span className="text-sm font-medium text-foreground hidden sm:inline">{profile?.full_name}</span>
+            <Button variant="ghost" size="sm" className="gap-1 text-destructive" onClick={handleLogout}>
               <LogOut className="h-4 w-4" />
               <span className="hidden sm:inline">{t("logout")}</span>
             </Button>
@@ -134,24 +159,15 @@ const FarmerDashboard = () => {
         </div>
       </header>
 
-      {/* Content */}
-      <main className="flex-1 container py-6">
-        {renderContent()}
-      </main>
+      <main className="flex-1 container py-6">{renderContent()}</main>
 
-      {/* Bottom Navigation */}
       <nav className="sticky bottom-0 border-t border-border bg-card">
         <div className="container flex justify-around py-2">
           {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
+            <button key={tab.id} onClick={() => setActiveTab(tab.id)}
               className={`flex flex-col items-center gap-1 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
-                activeTab === tab.id
-                  ? "text-primary"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
+                activeTab === tab.id ? "text-primary" : "text-muted-foreground hover:text-foreground"
+              }`}>
               <tab.icon className="h-5 w-5" />
               <span className="max-w-[70px] truncate">{t(tab.labelKey)}</span>
             </button>
