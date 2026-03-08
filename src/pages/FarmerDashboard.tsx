@@ -85,6 +85,8 @@ const FarmerDashboard = () => {
         );
       case "addProduct":
         return <AddProduct />;
+      case "profile":
+        return <FarmerProfile />;
       default:
         return null;
     }
