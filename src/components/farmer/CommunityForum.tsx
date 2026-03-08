@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Users, MessageCircle, Send, Plus, Trash2, ChevronDown, ChevronUp,
-  Sprout, Bug, TrendingUp, HelpCircle, Lightbulb, ImagePlus, X,
+  Sprout, Bug, TrendingUp, HelpCircle, Lightbulb, ImagePlus, X, Heart,
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
@@ -52,6 +52,8 @@ const CommunityForum = () => {
   const [expandedPost, setExpandedPost] = useState<string | null>(null);
   const [replyText, setReplyText] = useState<Record<string, string>>({});
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [likeCounts, setLikeCounts] = useState<Record<string, number>>({});
+  const [userLikes, setUserLikes] = useState<Set<string>>(new Set());
 
   // New post state
   const [newPostOpen, setNewPostOpen] = useState(false);
@@ -88,6 +90,25 @@ const CommunityForum = () => {
       .order("created_at", { ascending: false });
     setPosts((data as Post[]) || []);
     setLoading(false);
+    // Fetch likes after posts
+    fetchAllLikes(data?.map((p: any) => p.id) || []);
+  };
+
+  const fetchAllLikes = async (postIds: string[]) => {
+    if (postIds.length === 0) return;
+    const { data: allLikes } = await supabase
+      .from("community_likes")
+      .select("post_id, user_id")
+      .in("post_id", postIds);
+    
+    const counts: Record<string, number> = {};
+    const liked = new Set<string>();
+    (allLikes || []).forEach((l: any) => {
+      counts[l.post_id] = (counts[l.post_id] || 0) + 1;
+      if (l.user_id === user?.id) liked.add(l.post_id);
+    });
+    setLikeCounts(counts);
+    setUserLikes(liked);
   };
 
   const fetchReplies = async (postId: string) => {
@@ -195,6 +216,27 @@ const CommunityForum = () => {
     if (!error) {
       toast.success("Post deleted");
       fetchPosts();
+    }
+  };
+
+  const handleToggleLike = async (postId: string) => {
+    if (!user) return;
+    const alreadyLiked = userLikes.has(postId);
+    // Optimistic update
+    setUserLikes((prev) => {
+      const next = new Set(prev);
+      alreadyLiked ? next.delete(postId) : next.add(postId);
+      return next;
+    });
+    setLikeCounts((prev) => ({
+      ...prev,
+      [postId]: (prev[postId] || 0) + (alreadyLiked ? -1 : 1),
+    }));
+
+    if (alreadyLiked) {
+      await supabase.from("community_likes").delete().eq("post_id", postId).eq("user_id", user.id);
+    } else {
+      await supabase.from("community_likes").insert({ post_id: postId, user_id: user.id });
     }
   };
 
@@ -404,15 +446,28 @@ const CommunityForum = () => {
                     )}
                   </div>
 
-                  {/* Expand Button */}
-                  <button
-                    onClick={() => handleExpand(post.id)}
-                    className="mt-3 flex items-center gap-1.5 text-xs font-medium text-primary hover:underline"
-                  >
-                    <MessageCircle className="h-3.5 w-3.5" />
-                    {isExpanded ? "Hide replies" : `Replies${postReplies.length > 0 ? ` (${postReplies.length})` : ""}`}
-                    {isExpanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
-                  </button>
+                  {/* Like & Reply Buttons */}
+                  <div className="mt-3 flex items-center gap-4">
+                    <button
+                      onClick={() => handleToggleLike(post.id)}
+                      className={`flex items-center gap-1.5 text-xs font-medium transition-colors ${
+                        userLikes.has(post.id)
+                          ? "text-red-500"
+                          : "text-muted-foreground hover:text-red-500"
+                      }`}
+                    >
+                      <Heart className={`h-4 w-4 ${userLikes.has(post.id) ? "fill-red-500" : ""}`} />
+                      {likeCounts[post.id] || 0}
+                    </button>
+                    <button
+                      onClick={() => handleExpand(post.id)}
+                      className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-primary transition-colors"
+                    >
+                      <MessageCircle className="h-3.5 w-3.5" />
+                      {isExpanded ? "Hide replies" : `Replies${postReplies.length > 0 ? ` (${postReplies.length})` : ""}`}
+                      {isExpanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+                    </button>
+                  </div>
                 </div>
 
                 {/* Replies Section */}
