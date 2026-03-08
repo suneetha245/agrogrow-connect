@@ -30,6 +30,7 @@ interface Product {
   freshness_days: number | null;
   farmer_id: string;
   available: boolean | null;
+  stock: number;
   farmer_name?: string;
   farmer_district?: string;
 }
