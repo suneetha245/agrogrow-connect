@@ -293,16 +293,40 @@ const AddProduct = () => {
         <Input placeholder="Freshness (days)" type="number" value={form.freshnessDays} onChange={(e) => setForm((f) => ({ ...f, freshnessDays: e.target.value }))} className="h-11" />
         <Textarea placeholder="Description (optional)" value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} rows={2} />
 
-        {/* Image Upload */}
+        {/* Image Upload & Cropper */}
         <div>
           <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
-          {imagePreview ? (
+
+          {showCropper && rawImageSrc ? (
+            <div className="space-y-3">
+              <p className="text-sm font-medium text-foreground flex items-center gap-1"><Crop className="h-4 w-4 text-primary" /> Crop your image (4:3)</p>
+              <div className="border border-border rounded-lg overflow-hidden bg-secondary">
+                <ReactCrop crop={crop} onChange={(_, pctCrop) => setCrop(pctCrop)} aspect={4 / 3} minWidth={50}>
+                  <img ref={imgRef} src={rawImageSrc} alt="Crop" onLoad={onImageLoad} className="max-h-64 w-full object-contain" />
+                </ReactCrop>
+              </div>
+              <div className="flex gap-2">
+                <Button size="sm" onClick={handleCropConfirm} className="gap-1 flex-1">
+                  <Crop className="h-4 w-4" /> Apply Crop
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => { setShowCropper(false); setRawImageSrc(null); }}>
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          ) : imagePreview ? (
             <div className="relative w-full h-40 rounded-lg overflow-hidden border border-border">
               <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
-              <button onClick={() => { setImageFile(null); setImagePreview(null); }}
-                className="absolute top-2 right-2 bg-destructive text-destructive-foreground rounded-full p-1">
-                <Trash2 className="h-4 w-4" />
-              </button>
+              <div className="absolute top-2 right-2 flex gap-1">
+                <button onClick={() => fileInputRef.current?.click()}
+                  className="bg-card/90 text-foreground rounded-full p-1.5 hover:bg-card">
+                  <Pencil className="h-3.5 w-3.5" />
+                </button>
+                <button onClick={() => { setImageFile(null); setImagePreview(null); }}
+                  className="bg-destructive text-destructive-foreground rounded-full p-1.5">
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+              </div>
             </div>
           ) : (
             <button onClick={() => fileInputRef.current?.click()}
