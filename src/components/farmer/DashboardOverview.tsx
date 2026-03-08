@@ -76,6 +76,24 @@ const DashboardOverview = ({ onNavigate }: { onNavigate: (tab: string) => void }
 
   if (!stats) return null;
 
+  const chartData = (() => {
+    const months = [];
+    for (let i = 5; i >= 0; i--) {
+      const monthStart = startOfMonth(subMonths(new Date(), i));
+      const monthEnd = endOfMonth(monthStart);
+      const monthOrders = stats.allOrdersRaw.filter(o => {
+        const d = new Date(o.created_at);
+        return isWithinInterval(d, { start: monthStart, end: monthEnd });
+      });
+      months.push({
+        month: format(monthStart, "MMM yy"),
+        orders: monthOrders.length,
+        revenue: monthOrders.filter(o => o.status === "delivered").reduce((s, o) => s + o.total_price, 0),
+      });
+    }
+    return months;
+  })();
+
   const statCards = [
     { label: "Total Products", value: stats.totalProducts, sub: `${stats.availableProducts} available`, icon: ShoppingBag, color: "text-emerald-600 bg-emerald-100" },
     { label: "Pending Orders", value: stats.pendingOrders, sub: `${stats.confirmedOrders} confirmed`, icon: Clock, color: "text-amber-600 bg-amber-100" },
@@ -111,6 +129,55 @@ const DashboardOverview = ({ onNavigate }: { onNavigate: (tab: string) => void }
             <p className="text-xs text-muted-foreground">{card.sub}</p>
           </div>
         ))}
+      </div>
+
+      {/* Sales Analytics Charts */}
+      <div className="grid md:grid-cols-2 gap-4">
+        <div className="bg-card border border-border rounded-xl p-5 space-y-3">
+          <h3 className="font-heading font-bold text-foreground flex items-center gap-2">
+            <TrendingUp className="h-4 w-4 text-primary" /> Revenue (Last 6 Months)
+          </h3>
+          <div className="h-52">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={chartData}>
+                <defs>
+                  <linearGradient id="revenueGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <XAxis dataKey="month" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
+                <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} tickFormatter={(v: number) => `₹${v}`} />
+                <Tooltip
+                  contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }}
+                  formatter={(value: number) => [`₹${value.toLocaleString()}`, "Revenue"]}
+                />
+                <Area type="monotone" dataKey="revenue" stroke="hsl(var(--primary))" fill="url(#revenueGrad)" strokeWidth={2} />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        <div className="bg-card border border-border rounded-xl p-5 space-y-3">
+          <h3 className="font-heading font-bold text-foreground flex items-center gap-2">
+            <BarChart3 className="h-4 w-4 text-primary" /> Orders (Last 6 Months)
+          </h3>
+          <div className="h-52">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <XAxis dataKey="month" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
+                <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} allowDecimals={false} />
+                <Tooltip
+                  contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }}
+                  formatter={(value: number) => [value, "Orders"]}
+                />
+                <Bar dataKey="orders" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
       </div>
 
       {/* Recent Activity */}
