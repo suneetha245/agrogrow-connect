@@ -172,7 +172,20 @@ const CustomerDashboard = () => {
       setReviewRating(5);
       setReviewComment("");
       fetchReviews();
+      fetchAllProductReviews();
     }
+  };
+
+  const fetchAllProductReviews = async () => {
+    const { data } = await supabase.from("reviews").select("*");
+    if (data) setAllProductReviews(data as unknown as Review[]);
+  };
+
+  const getProductRating = (productId: string) => {
+    const productReviews = allProductReviews.filter(r => r.product_id === productId);
+    if (productReviews.length === 0) return null;
+    const avg = productReviews.reduce((s, r) => s + r.rating, 0) / productReviews.length;
+    return { avg: Math.round(avg * 10) / 10, count: productReviews.length };
   };
 
   const fetchProducts = async () => {
