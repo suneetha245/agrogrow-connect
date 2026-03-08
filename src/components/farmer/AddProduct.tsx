@@ -30,7 +30,7 @@ interface Product {
 const categories = ["Vegetables", "Fruits", "Grains", "Pulses", "Spices", "Dairy", "Other"];
 const units = ["kg", "quintal", "ton", "dozen", "piece", "litre"];
 
-const emptyForm = { name: "", quantity: "", price: "", unit: "kg", category: "Vegetables", description: "", freshnessDays: "" };
+const emptyForm = { name: "", quantity: "", price: "", unit: "kg", category: "Vegetables", description: "", freshnessDays: "", stock: "" };
 
 const AddProduct = () => {
   const { t } = useLanguage();
