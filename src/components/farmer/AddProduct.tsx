@@ -292,7 +292,10 @@ const AddProduct = () => {
             </SelectContent>
           </Select>
         </div>
-        <Input placeholder="Freshness (days)" type="number" value={form.freshnessDays} onChange={(e) => setForm((f) => ({ ...f, freshnessDays: e.target.value }))} className="h-11" />
+        <div className="grid grid-cols-2 gap-3">
+          <Input placeholder="Freshness (days)" type="number" value={form.freshnessDays} onChange={(e) => setForm((f) => ({ ...f, freshnessDays: e.target.value }))} className="h-11" />
+          <Input placeholder="Stock quantity *" type="number" min="0" value={form.stock} onChange={(e) => setForm((f) => ({ ...f, stock: e.target.value }))} className="h-11" />
+        </div>
         <Textarea placeholder="Description (optional)" value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} rows={2} />
 
         {/* Image Upload & Cropper */}
