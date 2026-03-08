@@ -1,14 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
 import {
   Users, MessageCircle, Send, Plus, Trash2, ChevronDown, ChevronUp,
-  Sprout, Bug, TrendingUp, HelpCircle, Lightbulb,
+  Sprout, Bug, TrendingUp, HelpCircle, Lightbulb, ImagePlus, X,
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
@@ -22,6 +21,7 @@ interface Post {
   content: string;
   category: string;
   likes: number;
+  image_url: string | null;
   created_at: string;
 }
 
@@ -59,6 +59,12 @@ const CommunityForum = () => {
   const [newContent, setNewContent] = useState("");
   const [newCategory, setNewCategory] = useState("general");
   const [submitting, setSubmitting] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Lightbox state
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
 
   useEffect(() => {
     fetchPosts();
@@ -80,7 +86,7 @@ const CommunityForum = () => {
       .from("community_posts")
       .select("*")
       .order("created_at", { ascending: false });
-    setPosts(data || []);
+    setPosts((data as Post[]) || []);
     setLoading(false);
   };
 
@@ -102,15 +108,56 @@ const CommunityForum = () => {
     }
   };
 
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image must be under 5MB");
+      return;
+    }
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
+  };
+
+  const clearImage = () => {
+    setImageFile(null);
+    setImagePreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const uploadImage = async (): Promise<string | null> => {
+    if (!imageFile || !user) return null;
+    const ext = imageFile.name.split(".").pop();
+    const path = `${user.id}/${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from("community-images").upload(path, imageFile);
+    if (error) {
+      toast.error("Image upload failed");
+      return null;
+    }
+    const { data } = supabase.storage.from("community-images").getPublicUrl(path);
+    return data.publicUrl;
+  };
+
   const handleCreatePost = async () => {
     if (!user || !newTitle.trim() || !newContent.trim()) return;
     setSubmitting(true);
+
+    let imageUrl: string | null = null;
+    if (imageFile) {
+      imageUrl = await uploadImage();
+      if (imageFile && !imageUrl) {
+        setSubmitting(false);
+        return;
+      }
+    }
+
     const { error } = await supabase.from("community_posts").insert({
       user_id: user.id,
       author_name: profile?.full_name || "Farmer",
       title: newTitle.trim(),
       content: newContent.trim(),
       category: newCategory,
+      image_url: imageUrl,
     });
     setSubmitting(false);
     if (error) {
@@ -120,6 +167,7 @@ const CommunityForum = () => {
       setNewTitle("");
       setNewContent("");
       setNewCategory("general");
+      clearImage();
       setNewPostOpen(false);
       fetchPosts();
     }
@@ -160,6 +208,19 @@ const CommunityForum = () => {
 
   return (
     <div className="space-y-6">
+      {/* Image Lightbox */}
+      {lightboxUrl && (
+        <div
+          className="fixed inset-0 z-[100] bg-black/80 flex items-center justify-center p-4"
+          onClick={() => setLightboxUrl(null)}
+        >
+          <button className="absolute top-4 right-4 text-white hover:text-white/80" onClick={() => setLightboxUrl(null)}>
+            <X className="h-8 w-8" />
+          </button>
+          <img src={lightboxUrl} alt="Full view" className="max-w-full max-h-[90vh] rounded-xl object-contain" />
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
@@ -167,10 +228,10 @@ const CommunityForum = () => {
             <Users className="h-6 w-6 text-primary" /> {t("community")}
           </h2>
           <p className="text-muted-foreground text-sm mt-1">
-            Connect with fellow farmers, share tips, and ask questions
+            Connect with fellow farmers, share photos, tips, and ask questions
           </p>
         </div>
-        <Dialog open={newPostOpen} onOpenChange={setNewPostOpen}>
+        <Dialog open={newPostOpen} onOpenChange={(open) => { setNewPostOpen(open); if (!open) clearImage(); }}>
           <DialogTrigger asChild>
             <Button className="gap-2">
               <Plus className="h-4 w-4" /> New Post
@@ -214,9 +275,42 @@ const CommunityForum = () => {
                   placeholder="Share more details, ask a question, or describe your situation..."
                   value={newContent}
                   onChange={(e) => setNewContent(e.target.value)}
-                  rows={4}
+                  rows={3}
                 />
               </div>
+
+              {/* Image Upload */}
+              <div>
+                <label className="text-sm font-medium text-foreground mb-1.5 block">Photo (optional)</label>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleImageSelect}
+                />
+                {imagePreview ? (
+                  <div className="relative inline-block">
+                    <img src={imagePreview} alt="Preview" className="h-32 w-auto rounded-lg object-cover border border-border" />
+                    <button
+                      onClick={clearImage}
+                      className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="flex items-center gap-2 px-4 py-3 rounded-lg border-2 border-dashed border-border text-muted-foreground hover:border-primary hover:text-primary transition-colors text-sm"
+                  >
+                    <ImagePlus className="h-5 w-5" />
+                    Add a photo of your farm or crop
+                  </button>
+                )}
+              </div>
+
               <Button onClick={handleCreatePost} disabled={submitting || !newTitle.trim() || !newContent.trim()} className="w-full">
                 {submitting ? "Posting..." : "Post to Community"}
               </Button>
@@ -272,6 +366,20 @@ const CommunityForum = () => {
 
             return (
               <div key={post.id} className="bg-card border border-border rounded-xl overflow-hidden">
+                {/* Post Image */}
+                {post.image_url && (
+                  <button
+                    onClick={() => setLightboxUrl(post.image_url)}
+                    className="w-full block"
+                  >
+                    <img
+                      src={post.image_url}
+                      alt={post.title}
+                      className="w-full h-48 sm:h-64 object-cover hover:opacity-95 transition-opacity"
+                    />
+                  </button>
+                )}
+
                 {/* Post Header */}
                 <div className="p-4 sm:p-5">
                   <div className="flex items-start justify-between gap-3">
@@ -286,7 +394,7 @@ const CommunityForum = () => {
                         </span>
                       </div>
                       <h3 className="font-heading font-bold text-foreground text-base">{post.title}</h3>
-                      <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{post.content}</p>
+                      <p className="text-sm text-muted-foreground mt-1 line-clamp-3">{post.content}</p>
                       <p className="text-xs text-muted-foreground mt-2 font-medium">— {post.author_name}</p>
                     </div>
                     {post.user_id === user?.id && (
