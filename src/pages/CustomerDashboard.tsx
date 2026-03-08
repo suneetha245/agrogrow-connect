@@ -534,6 +534,56 @@ const CustomerDashboard = () => {
             )}
           </div>
         )}
+
+        {/* ========== PROFILE VIEW ========== */}
+        {activeView === "profile" && (
+          <div className="space-y-5 max-w-lg mx-auto">
+            <h2 className="text-2xl font-heading font-black text-foreground">My Profile 👤</h2>
+            <p className="text-muted-foreground text-sm">Update your personal details and delivery address</p>
+
+            <div className="bg-card border border-border rounded-xl p-5 space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">Full Name</label>
+                <Input value={profileForm.full_name} onChange={(e) => setProfileForm(f => ({ ...f, full_name: e.target.value }))} />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">Email</label>
+                <Input value={profileForm.email} disabled className="opacity-60" />
+                <p className="text-xs text-muted-foreground">Email cannot be changed</p>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">Phone</label>
+                <Input value={profileForm.phone} onChange={(e) => setProfileForm(f => ({ ...f, phone: e.target.value }))} placeholder="+91 98765 43210" />
+              </div>
+
+              <hr className="border-border" />
+              <h3 className="font-heading font-bold text-foreground flex items-center gap-2"><MapPin className="h-4 w-4 text-primary" /> Delivery Address</h3>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">Address</label>
+                <Input value={profileForm.address} onChange={(e) => setProfileForm(f => ({ ...f, address: e.target.value }))} placeholder="House no, street, area" />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">District</label>
+                  <Input value={profileForm.district} onChange={(e) => setProfileForm(f => ({ ...f, district: e.target.value }))} />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">State</label>
+                  <Input value={profileForm.state} onChange={(e) => setProfileForm(f => ({ ...f, state: e.target.value }))} />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">Pincode</label>
+                <Input value={profileForm.pincode} onChange={(e) => setProfileForm(f => ({ ...f, pincode: e.target.value }))} placeholder="6-digit pincode" maxLength={6} />
+              </div>
+
+              <Button onClick={handleSaveProfile} disabled={savingProfile || !profileForm.full_name.trim()} className="w-full mt-2">
+                {savingProfile ? "Saving..." : "Save Changes"}
+              </Button>
+            </div>
+          </div>
+        )}
       </main>
 
       {/* Bottom Nav - Mobile */}
@@ -543,6 +593,7 @@ const CustomerDashboard = () => {
             { id: "shop" as const, icon: ShoppingBag, label: "Shop" },
             { id: "cart" as const, icon: ShoppingCart, label: `Cart (${cart.length})` },
             { id: "orders" as const, icon: Package, label: "Orders" },
+            { id: "profile" as const, icon: User, label: "Profile" },
           ].map((tab) => (
             <button
               key={tab.id}
