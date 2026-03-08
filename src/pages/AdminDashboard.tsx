@@ -83,6 +83,18 @@ const AdminDashboard = () => {
       return;
     }
 
+    // Send in-app notification to the farmer
+    const notifTitle = status === "approved" ? "Account Approved! 🎉" : "Account Not Approved";
+    const notifMessage = status === "approved"
+      ? "Your farmer account has been approved. You now have full access to the dashboard, crop recommendations, and product management."
+      : "Your farmer registration was not approved. Please contact support for more information.";
+
+    await supabase.from("notifications").insert({
+      user_id: userId,
+      title: notifTitle,
+      message: notifMessage,
+    });
+
     toast({ title: `Farmer ${status} successfully!` });
     fetchPendingFarmers();
   };
