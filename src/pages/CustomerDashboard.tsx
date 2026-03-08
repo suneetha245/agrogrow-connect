@@ -92,6 +92,7 @@ const CustomerDashboard = () => {
 
   // Review state
   const [reviews, setReviews] = useState<Review[]>([]);
+  const [allProductReviews, setAllProductReviews] = useState<Review[]>([]);
   const [reviewingOrderId, setReviewingOrderId] = useState<string | null>(null);
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewComment, setReviewComment] = useState("");
