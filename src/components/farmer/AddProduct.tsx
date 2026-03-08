@@ -159,6 +159,8 @@ const AddProduct = () => {
     setImageFile(null);
     setImagePreview(null);
     setEditingId(null);
+    setShowCropper(false);
+    setRawImageSrc(null);
   };
 
   const startEdit = (product: Product) => {
