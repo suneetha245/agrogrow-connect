@@ -73,18 +73,7 @@ const FarmerDashboard = () => {
           </div>
         );
       case "community":
-        return (
-          <div className="space-y-6">
-            <h2 className="text-2xl font-heading font-black text-foreground">{t("community")}</h2>
-            <p className="text-muted-foreground">{t("communityDesc")}</p>
-            <div className="bg-card border border-border rounded-xl p-6 min-h-[300px] flex items-center justify-center">
-              <div className="text-center text-muted-foreground">
-                <Users className="h-12 w-12 mx-auto mb-4" />
-                <p className="font-medium">Community chat coming soon!</p>
-              </div>
-            </div>
-          </div>
-        );
+        return <CommunityForum />;
       case "addProduct":
         return <AddProduct />;
       case "profile":
