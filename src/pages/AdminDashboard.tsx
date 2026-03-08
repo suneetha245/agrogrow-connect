@@ -7,10 +7,14 @@ import { useToast } from "@/hooks/use-toast";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 import {
   Check, X, LogOut, Shield, Users, Package, LayoutDashboard,
   TrendingUp, ShoppingBag, Sprout, Search, RefreshCw, BarChart3,
-  Clock, CheckCircle2, Truck, MapPin, Trash2, UserCog
+  Clock, CheckCircle2, Truck, MapPin, Trash2, UserCog, CalendarIcon
 } from "lucide-react";
 import logo from "@/assets/logo.png";
 
@@ -64,6 +68,10 @@ const AdminDashboard = () => {
   const [orderFilter, setOrderFilter] = useState("all");
   const [managingUserId, setManagingUserId] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
+  const [orderPaymentFilter, setOrderPaymentFilter] = useState("all");
+  const [orderSearch, setOrderSearch] = useState("");
+  const [dateFrom, setDateFrom] = useState<Date | undefined>(undefined);
+  const [dateTo, setDateTo] = useState<Date | undefined>(undefined);
 
   useEffect(() => {
     loadAll();
@@ -229,7 +237,18 @@ const AdminDashboard = () => {
     return matchesSearch && matchesRole;
   });
 
-  const filteredOrders = orderFilter === "all" ? allOrders : allOrders.filter(o => o.status === orderFilter);
+  const filteredOrders = allOrders.filter(o => {
+    const matchesStatus = orderFilter === "all" || o.status === orderFilter;
+    const matchesPayment = orderPaymentFilter === "all" || o.payment_method === orderPaymentFilter;
+    const matchesSearch = orderSearch === "" ||
+      o.product_name?.toLowerCase().includes(orderSearch.toLowerCase()) ||
+      o.customer_name?.toLowerCase().includes(orderSearch.toLowerCase()) ||
+      o.farmer_name?.toLowerCase().includes(orderSearch.toLowerCase());
+    const orderDate = new Date(o.created_at);
+    const matchesDateFrom = !dateFrom || orderDate >= dateFrom;
+    const matchesDateTo = !dateTo || orderDate <= new Date(dateTo.getTime() + 86400000);
+    return matchesStatus && matchesPayment && matchesSearch && matchesDateFrom && matchesDateTo;
+  });
 
   const statusColor: Record<string, string> = {
     pending: "bg-amber-100 text-amber-800", confirmed: "bg-blue-100 text-blue-800",
@@ -485,6 +504,15 @@ const AdminDashboard = () => {
             {activeTab === "orders" && (
               <div className="space-y-4">
                 <h2 className="text-2xl font-heading font-black text-foreground">All Orders 📦</h2>
+
+                {/* Search */}
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input placeholder="Search by product, customer, or farmer..." value={orderSearch}
+                    onChange={e => setOrderSearch(e.target.value)} className="pl-9" />
+                </div>
+
+                {/* Status filters */}
                 <div className="flex gap-2 flex-wrap">
                   {["all", "pending", "confirmed", "shipped", "delivered"].map(s => (
                     <button key={s} onClick={() => setOrderFilter(s)}
@@ -495,6 +523,59 @@ const AdminDashboard = () => {
                     </button>
                   ))}
                 </div>
+
+                {/* Date range & payment filters */}
+                <div className="flex gap-3 flex-wrap items-end">
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium text-muted-foreground">From</label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" size="sm" className={cn("w-36 justify-start text-left font-normal h-9", !dateFrom && "text-muted-foreground")}>
+                          <CalendarIcon className="mr-2 h-3 w-3" />
+                          {dateFrom ? format(dateFrom, "dd MMM yyyy") : "Start date"}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar mode="single" selected={dateFrom} onSelect={setDateFrom} initialFocus className={cn("p-3 pointer-events-auto")} />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium text-muted-foreground">To</label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" size="sm" className={cn("w-36 justify-start text-left font-normal h-9", !dateTo && "text-muted-foreground")}>
+                          <CalendarIcon className="mr-2 h-3 w-3" />
+                          {dateTo ? format(dateTo, "dd MMM yyyy") : "End date"}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar mode="single" selected={dateTo} onSelect={setDateTo} initialFocus className={cn("p-3 pointer-events-auto")} />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium text-muted-foreground">Payment</label>
+                    <Select value={orderPaymentFilter} onValueChange={setOrderPaymentFilter}>
+                      <SelectTrigger className="w-32 h-9 text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All</SelectItem>
+                        <SelectItem value="online">Online</SelectItem>
+                        <SelectItem value="cod">COD</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {(dateFrom || dateTo || orderPaymentFilter !== "all" || orderSearch) && (
+                    <Button variant="ghost" size="sm" className="h-9 text-xs gap-1"
+                      onClick={() => { setDateFrom(undefined); setDateTo(undefined); setOrderPaymentFilter("all"); setOrderSearch(""); }}>
+                      <X className="h-3 w-3" /> Clear
+                    </Button>
+                  )}
+                </div>
+
+                <p className="text-sm text-muted-foreground">{filteredOrders.length} orders found</p>
 
                 {filteredOrders.length === 0 ? (
                   <div className="bg-card border border-border rounded-xl p-10 text-center">
