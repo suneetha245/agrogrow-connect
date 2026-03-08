@@ -35,17 +35,7 @@ const FarmerDashboard = () => {
       case "crop":
         return <CropRecommendation />;
       case "disease":
-        return (
-          <div className="space-y-6">
-            <h2 className="text-2xl font-heading font-black text-foreground">{t("diseaseDetection")}</h2>
-            <p className="text-muted-foreground">{t("diseaseDetectionDesc")}</p>
-            <div className="border-2 border-dashed border-border rounded-xl p-12 text-center">
-              <Bug className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground font-medium">Upload a crop image to detect diseases</p>
-              <Button className="mt-4 font-heading font-bold">Upload Image</Button>
-            </div>
-          </div>
-        );
+        return <DiseaseDetection />;
       case "govt":
         return (
           <div className="space-y-6">
