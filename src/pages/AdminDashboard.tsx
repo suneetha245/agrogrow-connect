@@ -62,6 +62,31 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     loadAll();
+
+    // Realtime: new farmer registrations
+    const farmerChannel = supabase
+      .channel('admin-farmer-registrations')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'farmer_details' }, (payload) => {
+        toast({ title: "🌾 New Farmer Registration", description: "A new farmer has registered and is pending approval." });
+        fetchPendingFarmers();
+        fetchStats();
+      })
+      .subscribe();
+
+    // Realtime: new orders
+    const orderChannel = supabase
+      .channel('admin-new-orders')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders' }, (payload) => {
+        toast({ title: "📦 New Order Placed", description: `A new order worth ₹${payload.new.total_price} has been placed.` });
+        fetchAllOrders();
+        fetchStats();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(farmerChannel);
+      supabase.removeChannel(orderChannel);
+    };
   }, []);
 
   const loadAll = async () => {
