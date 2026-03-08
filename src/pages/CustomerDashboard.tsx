@@ -372,7 +372,9 @@ const CustomerDashboard = () => {
 
                     <div className="flex items-center justify-between">
                       <span className="text-lg font-heading font-black text-primary">₹{product.price}<span className="text-xs font-normal text-muted-foreground">/{product.unit || "kg"}</span></span>
-                      <span className="text-xs text-muted-foreground">{product.quantity} available</span>
+                      <span className={`text-xs font-medium ${product.stock > 0 ? "text-muted-foreground" : "text-destructive"}`}>
+                        {product.stock > 0 ? `${product.stock} in stock` : "Out of stock"}
+                      </span>
                     </div>
 
                     {product.freshness_days != null && product.freshness_days <= 3 && (
@@ -382,8 +384,14 @@ const CustomerDashboard = () => {
                       </div>
                     )}
 
-                    <Button size="sm" className="w-full font-heading font-bold gap-2" onClick={() => addToCart(product)}>
-                      <ShoppingCart className="h-4 w-4" /> Add to Cart
+                    {product.stock > 0 && product.stock <= 5 && (
+                      <div className="flex items-center gap-1 text-xs font-medium text-amber-700 bg-amber-100 px-2 py-1 rounded-md">
+                        📦 Only {product.stock} left — order soon!
+                      </div>
+                    )}
+
+                    <Button size="sm" className="w-full font-heading font-bold gap-2" onClick={() => addToCart(product)} disabled={product.stock <= 0}>
+                      <ShoppingCart className="h-4 w-4" /> {product.stock > 0 ? "Add to Cart" : "Out of Stock"}
                     </Button>
                   </div>
                 </div>
