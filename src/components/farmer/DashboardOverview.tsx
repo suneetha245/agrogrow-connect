@@ -61,6 +61,7 @@ const DashboardOverview = ({ onNavigate }: { onNavigate: (tab: string) => void }
         created_at: o.created_at,
         product_name: o.products?.name || "Product",
       })),
+      allOrdersRaw: all.map(o => ({ status: o.status, total_price: Number(o.total_price), created_at: o.created_at })),
     });
     setLoading(false);
   };
