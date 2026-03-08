@@ -147,6 +147,7 @@ export const translations: Record<Language, Record<string, string>> = {
     feedback: "ಅಭಿಪ್ರಾಯ",
     addProduct: "ಉತ್ಪನ್ನ ಸೇರಿಸಿ",
     myOrders: "ನನ್ನ ಆರ್ಡರ್‌ಗಳು",
+    orders: "ಆರ್ಡರ್‌ಗಳು",
     cart: "ಕಾರ್ಟ್",
     footerDesc: "ಉತ್ತಮ ನಾಳೆಗಾಗಿ ತಂತ್ರಜ್ಞಾನದೊಂದಿಗೆ ರೈತರನ್ನು ಸಬಲಗೊಳಿಸುವುದು.",
     quickLinks: "ತ್ವರಿತ ಲಿಂಕ್‌ಗಳು",
