@@ -384,6 +384,9 @@ const AddProduct = () => {
                   </div>
                   <div className="flex gap-2 flex-wrap">
                     <Badge variant="outline" className="text-xs">{p.quantity}</Badge>
+                    <Badge variant={p.stock > 0 ? "default" : "destructive"} className="text-xs">
+                      📦 Stock: {p.stock}
+                    </Badge>
                     {p.category && <Badge variant="secondary" className="text-xs">{p.category}</Badge>}
                     {p.freshness_days && <Badge variant="outline" className="text-xs">🟢 {p.freshness_days}d fresh</Badge>}
                   </div>
