@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { PlusCircle, Trash2, ImagePlus, Package, Loader2 } from "lucide-react";
+import { PlusCircle, Trash2, ImagePlus, Package, Loader2, Pencil, X, Save } from "lucide-react";
 
 interface Product {
   id: string;
@@ -27,6 +27,8 @@ interface Product {
 const categories = ["Vegetables", "Fruits", "Grains", "Pulses", "Spices", "Dairy", "Other"];
 const units = ["kg", "quintal", "ton", "dozen", "piece", "litre"];
 
+const emptyForm = { name: "", quantity: "", price: "", unit: "kg", category: "Vegetables", description: "", freshnessDays: "" };
+
 const AddProduct = () => {
   const { t } = useLanguage();
   const { user } = useAuth();
@@ -35,13 +37,12 @@ const AddProduct = () => {
 
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const [adding, setAdding] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [form, setForm] = useState({
-    name: "", quantity: "", price: "", unit: "kg", category: "Vegetables",
-    description: "", freshnessDays: "",
-  });
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [form, setForm] = useState(emptyForm);
 
   useEffect(() => {
     if (user) fetchProducts();
@@ -81,36 +82,78 @@ const AddProduct = () => {
     return data.publicUrl;
   };
 
+  const resetForm = () => {
+    setForm(emptyForm);
+    setImageFile(null);
+    setImagePreview(null);
+    setEditingId(null);
+  };
+
+  const startEdit = (product: Product) => {
+    setEditingId(product.id);
+    setForm({
+      name: product.name,
+      quantity: product.quantity,
+      price: String(product.price),
+      unit: product.unit || "kg",
+      category: product.category || "Vegetables",
+      description: product.description || "",
+      freshnessDays: product.freshness_days ? String(product.freshness_days) : "",
+    });
+    setImagePreview(product.image_url || null);
+    setImageFile(null);
+    // Scroll to form
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   const handleSubmit = async () => {
     if (!form.name || !form.quantity || !form.price || !user) return;
-    setAdding(true);
+    setSaving(true);
 
-    let imageUrl: string | null = null;
+    let imageUrl: string | null = editingId
+      ? (imageFile ? null : imagePreview) // keep existing if no new file
+      : null;
+
     if (imageFile) {
       imageUrl = await uploadImage();
     }
 
-    const { error } = await supabase.from("products").insert({
-      farmer_id: user.id,
-      name: form.name,
-      quantity: form.quantity,
+    const productData: any = {
+      name: form.name.trim(),
+      quantity: form.quantity.trim(),
       price: parseFloat(form.price),
       unit: form.unit,
       category: form.category,
-      description: form.description || null,
+      description: form.description.trim() || null,
       freshness_days: form.freshnessDays ? parseInt(form.freshnessDays) : null,
-      image_url: imageUrl,
-    });
+    };
 
-    setAdding(false);
-    if (error) {
-      toast({ title: "Failed to add product", variant: "destructive" });
+    if (imageFile || !editingId) {
+      productData.image_url = imageUrl;
+    }
+
+    if (editingId) {
+      const { error } = await supabase.from("products").update(productData).eq("id", editingId);
+      setSaving(false);
+      if (error) {
+        toast({ title: "Failed to update product", variant: "destructive" });
+      } else {
+        toast({ title: "Product updated!" });
+        resetForm();
+        fetchProducts();
+      }
     } else {
-      toast({ title: "Product added successfully!" });
-      setForm({ name: "", quantity: "", price: "", unit: "kg", category: "Vegetables", description: "", freshnessDays: "" });
-      setImageFile(null);
-      setImagePreview(null);
-      fetchProducts();
+      productData.farmer_id = user.id;
+      productData.image_url = imageUrl;
+      const { error } = await supabase.from("products").insert(productData);
+      setSaving(false);
+      if (error) {
+        toast({ title: "Failed to add product", variant: "destructive" });
+      } else {
+        toast({ title: "Product added!" });
+        resetForm();
+        fetchProducts();
+      }
     }
   };
 
@@ -118,19 +161,44 @@ const AddProduct = () => {
     const { error } = await supabase.from("products").delete().eq("id", id);
     if (!error) {
       setProducts((p) => p.filter((x) => x.id !== id));
+      setConfirmDeleteId(null);
+      if (editingId === id) resetForm();
       toast({ title: "Product removed" });
+    }
+  };
+
+  const handleToggleAvailability = async (product: Product) => {
+    const { error } = await supabase
+      .from("products")
+      .update({ available: !product.available })
+      .eq("id", product.id);
+    if (!error) {
+      setProducts(prev => prev.map(p => p.id === product.id ? { ...p, available: !p.available } : p));
+      toast({ title: product.available ? "Marked as unavailable" : "Marked as available" });
     }
   };
 
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="text-2xl font-heading font-black text-foreground">{t("addProduct")}</h2>
-        <p className="text-muted-foreground mt-1">List your produce for customers to buy directly.</p>
+        <h2 className="text-2xl font-heading font-black text-foreground">
+          {editingId ? "Edit Product ✏️" : t("addProduct")}
+        </h2>
+        <p className="text-muted-foreground mt-1">
+          {editingId ? "Update your product details below." : "List your produce for customers to buy directly."}
+        </p>
       </div>
 
-      {/* Add Product Form */}
+      {/* Add/Edit Product Form */}
       <div className="max-w-lg space-y-4 p-6 rounded-xl border border-border bg-card">
+        {editingId && (
+          <div className="flex items-center justify-between pb-2 border-b border-border">
+            <span className="text-sm font-medium text-primary">Editing: {form.name}</span>
+            <Button variant="ghost" size="sm" onClick={resetForm} className="gap-1 text-muted-foreground">
+              <X className="h-4 w-4" /> Cancel
+            </Button>
+          </div>
+        )}
         <div className="grid grid-cols-2 gap-3">
           <Input placeholder="Product Name *" value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} className="col-span-2 h-11" />
           <Input placeholder="Quantity *" value={form.quantity} onChange={(e) => setForm((f) => ({ ...f, quantity: e.target.value }))} className="h-11" />
@@ -166,13 +234,19 @@ const AddProduct = () => {
             <button onClick={() => fileInputRef.current?.click()}
               className="w-full h-28 border-2 border-dashed border-border rounded-lg flex flex-col items-center justify-center gap-2 text-muted-foreground hover:border-primary hover:text-primary transition-colors">
               <ImagePlus className="h-6 w-6" />
-              <span className="text-sm font-medium">Add product photo</span>
+              <span className="text-sm font-medium">{editingId ? "Change product photo" : "Add product photo"}</span>
             </button>
           )}
         </div>
 
-        <Button className="w-full h-12 font-heading font-bold" onClick={handleSubmit} disabled={adding || !form.name || !form.quantity || !form.price}>
-          {adding ? <><Loader2 className="h-4 w-4 animate-spin" /> Adding...</> : <><PlusCircle className="h-4 w-4" /> Add Product</>}
+        <Button className="w-full h-12 font-heading font-bold" onClick={handleSubmit} disabled={saving || !form.name || !form.quantity || !form.price}>
+          {saving ? (
+            <><Loader2 className="h-4 w-4 animate-spin" /> {editingId ? "Updating..." : "Adding..."}</>
+          ) : editingId ? (
+            <><Save className="h-4 w-4" /> Update Product</>
+          ) : (
+            <><PlusCircle className="h-4 w-4" /> Add Product</>
+          )}
         </Button>
       </div>
 
@@ -189,24 +263,55 @@ const AddProduct = () => {
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {products.map((p) => (
-              <div key={p.id} className="rounded-xl border border-border bg-card overflow-hidden">
+              <div key={p.id} className={`rounded-xl border bg-card overflow-hidden transition-all ${
+                editingId === p.id ? "border-primary ring-2 ring-primary/20" : "border-border"
+              } ${!p.available ? "opacity-60" : ""}`}>
                 {p.image_url && (
                   <img src={p.image_url} alt={p.name} className="w-full h-36 object-cover" />
                 )}
-                <div className="p-4">
+                <div className="p-4 space-y-3">
                   <div className="flex items-start justify-between">
-                    <h4 className="font-heading font-bold text-foreground">{p.name}</h4>
-                    <button onClick={() => handleDelete(p.id)} className="text-destructive hover:text-destructive/80">
-                      <Trash2 className="h-4 w-4" />
-                    </button>
+                    <div>
+                      <h4 className="font-heading font-bold text-foreground">{p.name}</h4>
+                      <p className="text-primary font-bold mt-0.5">₹{p.price}/{p.unit || "kg"}</p>
+                    </div>
+                    {!p.available && (
+                      <Badge variant="secondary" className="text-xs">Unavailable</Badge>
+                    )}
                   </div>
-                  <p className="text-primary font-bold mt-1">₹{p.price}/{p.unit || "kg"}</p>
-                  <div className="flex gap-2 mt-2 flex-wrap">
+                  <div className="flex gap-2 flex-wrap">
                     <Badge variant="outline" className="text-xs">{p.quantity}</Badge>
                     {p.category && <Badge variant="secondary" className="text-xs">{p.category}</Badge>}
                     {p.freshness_days && <Badge variant="outline" className="text-xs">🟢 {p.freshness_days}d fresh</Badge>}
                   </div>
-                  {p.description && <p className="text-xs text-muted-foreground mt-2 line-clamp-2">{p.description}</p>}
+                  {p.description && <p className="text-xs text-muted-foreground line-clamp-2">{p.description}</p>}
+
+                  {/* Action Buttons */}
+                  <div className="flex gap-2 pt-1 border-t border-border">
+                    <Button variant="outline" size="sm" className="flex-1 gap-1 text-xs h-8"
+                      onClick={() => startEdit(p)}>
+                      <Pencil className="h-3 w-3" /> Edit
+                    </Button>
+                    <Button variant="outline" size="sm" className="text-xs h-8"
+                      onClick={() => handleToggleAvailability(p)}>
+                      {p.available ? "Hide" : "Show"}
+                    </Button>
+                    {confirmDeleteId === p.id ? (
+                      <div className="flex gap-1">
+                        <Button variant="destructive" size="sm" className="text-xs h-8" onClick={() => handleDelete(p.id)}>
+                          Confirm
+                        </Button>
+                        <Button variant="outline" size="sm" className="text-xs h-8" onClick={() => setConfirmDeleteId(null)}>
+                          No
+                        </Button>
+                      </div>
+                    ) : (
+                      <Button variant="ghost" size="sm" className="text-xs h-8 text-destructive hover:text-destructive"
+                        onClick={() => setConfirmDeleteId(p.id)}>
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
