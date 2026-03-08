@@ -174,10 +174,10 @@ const AddProduct = () => {
       category: product.category || "Vegetables",
       description: product.description || "",
       freshnessDays: product.freshness_days ? String(product.freshness_days) : "",
+      stock: String(product.stock || 0),
     });
     setImagePreview(product.image_url || null);
     setImageFile(null);
-    // Scroll to form
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
