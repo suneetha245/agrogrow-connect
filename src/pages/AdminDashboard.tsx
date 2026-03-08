@@ -192,7 +192,37 @@ const AdminDashboard = () => {
     fetchStats();
   };
 
-  const filteredUsers = allUsers.filter(u => {
+  const handleChangeRole = async (userId: string, newRole: string) => {
+    setManagingUserId(userId);
+    const { data, error } = await supabase.functions.invoke("admin-manage-user", {
+      body: { action: "change_role", user_id: userId, new_role: newRole },
+    });
+    setManagingUserId(null);
+    if (error || data?.error) {
+      toast({ title: "Error", description: data?.error || "Failed to change role", variant: "destructive" });
+    } else {
+      toast({ title: "Role updated", description: `User role changed to ${newRole}` });
+      fetchAllUsers();
+      fetchStats();
+    }
+  };
+
+  const handleDeleteUser = async (userId: string) => {
+    setManagingUserId(userId);
+    const { data, error } = await supabase.functions.invoke("admin-manage-user", {
+      body: { action: "delete_user", user_id: userId },
+    });
+    setManagingUserId(null);
+    setConfirmDelete(null);
+    if (error || data?.error) {
+      toast({ title: "Error", description: data?.error || "Failed to delete user", variant: "destructive" });
+    } else {
+      toast({ title: "User deleted", description: "User has been removed from the platform" });
+      fetchAllUsers();
+      fetchStats();
+    }
+  };
+
     const matchesSearch = u.full_name.toLowerCase().includes(userSearch.toLowerCase()) || u.email.toLowerCase().includes(userSearch.toLowerCase());
     const matchesRole = roleFilter === "all" || u.role === roleFilter;
     return matchesSearch && matchesRole;
