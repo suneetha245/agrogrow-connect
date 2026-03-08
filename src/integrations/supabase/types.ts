@@ -101,6 +101,36 @@ export type Database = {
         }
         Relationships: []
       }
+      feedback: {
+        Row: {
+          comment: string
+          created_at: string
+          farmer_name: string
+          id: string
+          location: string | null
+          rating: number
+          user_id: string
+        }
+        Insert: {
+          comment: string
+          created_at?: string
+          farmer_name: string
+          id?: string
+          location?: string | null
+          rating?: number
+          user_id: string
+        }
+        Update: {
+          comment?: string
+          created_at?: string
+          farmer_name?: string
+          id?: string
+          location?: string | null
+          rating?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string
