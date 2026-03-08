@@ -23,6 +23,7 @@ interface Product {
   freshness_days: number | null;
   image_url: string | null;
   available: boolean | null;
+  stock: number;
   created_at: string;
 }
 
