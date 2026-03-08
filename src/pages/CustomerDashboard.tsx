@@ -55,7 +55,7 @@ const CustomerDashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const [activeView, setActiveView] = useState<"shop" | "orders" | "cart" | "checkout">("shop");
+  const [activeView, setActiveView] = useState<"shop" | "orders" | "cart" | "checkout" | "profile">("shop");
   const [products, setProducts] = useState<Product[]>([]);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
@@ -64,6 +64,55 @@ const CustomerDashboard = () => {
   const [paymentMethod, setPaymentMethod] = useState<"online" | "cod">("online");
   const [placingOrder, setPlacingOrder] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(false);
+
+  // Profile form state
+  const [profileForm, setProfileForm] = useState({
+    full_name: "",
+    email: "",
+    phone: "",
+    address: "",
+    district: "",
+    state: "",
+    pincode: "",
+  });
+  const [savingProfile, setSavingProfile] = useState(false);
+
+  useEffect(() => {
+    if (profile) {
+      setProfileForm({
+        full_name: profile.full_name || "",
+        email: profile.email || "",
+        phone: profile.phone || "",
+        address: profile.address || "",
+        district: profile.district || "",
+        state: profile.state || "",
+        pincode: profile.pincode || "",
+      });
+    }
+  }, [profile]);
+
+  const handleSaveProfile = async () => {
+    if (!user) return;
+    setSavingProfile(true);
+    const { error } = await supabase
+      .from("profiles")
+      .update({
+        full_name: profileForm.full_name.trim(),
+        phone: profileForm.phone.trim(),
+        address: profileForm.address.trim(),
+        district: profileForm.district.trim(),
+        state: profileForm.state.trim(),
+        pincode: profileForm.pincode.trim(),
+      })
+      .eq("user_id", user.id);
+
+    setSavingProfile(false);
+    if (error) {
+      toast({ title: "Error", description: "Failed to update profile", variant: "destructive" });
+    } else {
+      toast({ title: "Profile updated", description: "Your details have been saved" });
+    }
+  };
 
   useEffect(() => {
     fetchProducts();
