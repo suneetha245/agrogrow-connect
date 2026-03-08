@@ -599,7 +599,12 @@ const AdminDashboard = () => {
                   )}
                 </div>
 
-                <p className="text-sm text-muted-foreground">{filteredOrders.length} orders found</p>
+                <div className="flex items-center justify-between">
+                  <p className="text-sm text-muted-foreground">{filteredOrders.length} orders found</p>
+                  <Button variant="outline" size="sm" className="h-9 text-xs gap-1.5" onClick={exportOrdersCSV} disabled={filteredOrders.length === 0}>
+                    <Download className="h-3.5 w-3.5" /> Export CSV
+                  </Button>
+                </div>
 
                 {filteredOrders.length === 0 ? (
                   <div className="bg-card border border-border rounded-xl p-10 text-center">
