@@ -38,6 +38,8 @@ const FarmerDashboard = () => {
         return <CropRecommendation />;
       case "disease":
         return <DiseaseDetection />;
+      case "orders":
+        return <OrderManagement />;
       case "govt":
         return (
           <div className="space-y-6">
