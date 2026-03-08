@@ -216,6 +216,7 @@ export const translations: Record<Language, Record<string, string>> = {
     feedback: "प्रतिक्रिया",
     addProduct: "उत्पाद जोड़ें",
     myOrders: "मेरे ऑर्डर",
+    orders: "ऑर्डर",
     cart: "कार्ट",
     footerDesc: "बेहतर कल के लिए तकनीक से किसानों को सशक्त बनाना।",
     quickLinks: "त्वरित लिंक",
