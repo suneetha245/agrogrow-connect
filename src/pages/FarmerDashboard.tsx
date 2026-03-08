@@ -4,10 +4,9 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import LanguageSelector from "@/components/LanguageSelector";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
-import { Sprout, Bug, Landmark, Users, PlusCircle, User, LogOut, MessageSquare } from "lucide-react";
+import CropRecommendation from "@/components/farmer/CropRecommendation";
+import AddProduct from "@/components/farmer/AddProduct";
+import { Sprout, Bug, Landmark, Users, PlusCircle, LogOut } from "lucide-react";
 import logo from "@/assets/logo.png";
 
 const tabs = [
@@ -20,57 +19,19 @@ const tabs = [
 
 const FarmerDashboard = () => {
   const { t } = useLanguage();
-  const { user, profile, signOut } = useAuth();
+  const { profile, signOut } = useAuth();
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("crop");
-  const [productForm, setProductForm] = useState({ name: "", quantity: "", price: "", freshnessDays: "" });
-  const [addingProduct, setAddingProduct] = useState(false);
 
   const handleLogout = async () => {
     await signOut();
     navigate("/");
   };
 
-  const handleAddProduct = async () => {
-    if (!productForm.name || !productForm.quantity || !productForm.price || !user) return;
-    setAddingProduct(true);
-
-    const { error } = await supabase.from("products").insert({
-      farmer_id: user.id,
-      name: productForm.name,
-      quantity: productForm.quantity,
-      price: parseFloat(productForm.price),
-      freshness_days: productForm.freshnessDays ? parseInt(productForm.freshnessDays) : null,
-    });
-
-    setAddingProduct(false);
-    if (error) {
-      toast({ title: "Failed to add product", variant: "destructive" });
-    } else {
-      toast({ title: "Product added successfully!" });
-      setProductForm({ name: "", quantity: "", price: "", freshnessDays: "" });
-    }
-  };
-
   const renderContent = () => {
     switch (activeTab) {
       case "crop":
-        return (
-          <div className="space-y-6">
-            <h2 className="text-2xl font-heading font-black text-foreground">{t("cropRecommendation")}</h2>
-            <p className="text-muted-foreground">{t("cropRecommendationDesc")}</p>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {["Rice", "Sugarcane", "Ragi", "Tomato", "Coconut", "Mango"].map((crop) => (
-                <div key={crop} className="p-6 rounded-xl border border-border bg-card hover:shadow-card transition-shadow cursor-pointer">
-                  <h3 className="font-heading font-bold text-foreground">{crop}</h3>
-                  <p className="text-sm text-muted-foreground mt-1">Season: Kharif · Profit: High</p>
-                  <div className="mt-3 text-xs font-medium text-primary">View Details →</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        );
+        return <CropRecommendation />;
       case "disease":
         return (
           <div className="space-y-6">
@@ -89,10 +50,10 @@ const FarmerDashboard = () => {
             <h2 className="text-2xl font-heading font-black text-foreground">{t("governmentFacilities")}</h2>
             <div className="space-y-4">
               {[
-                { name: "PM-KISAN", desc: "₹6,000 per year income support", link: "#" },
-                { name: "Fasal Bima Yojana", desc: "Crop insurance for farmers", link: "#" },
-                { name: "Kisan Credit Card", desc: "Easy farm credit at low interest", link: "#" },
-                { name: "Soil Health Card", desc: "Free soil testing & recommendations", link: "#" },
+                { name: "PM-KISAN", desc: "₹6,000 per year income support", link: "https://pmkisan.gov.in/" },
+                { name: "Fasal Bima Yojana", desc: "Crop insurance for farmers", link: "https://pmfby.gov.in/" },
+                { name: "Kisan Credit Card", desc: "Easy farm credit at low interest", link: "https://www.nabard.org/" },
+                { name: "Soil Health Card", desc: "Free soil testing & recommendations", link: "https://soilhealth.dac.gov.in/" },
               ].map((scheme) => (
                 <div key={scheme.name} className="p-5 rounded-xl border border-border bg-card flex justify-between items-center">
                   <div>
@@ -121,20 +82,7 @@ const FarmerDashboard = () => {
           </div>
         );
       case "addProduct":
-        return (
-          <div className="space-y-6">
-            <h2 className="text-2xl font-heading font-black text-foreground">{t("addProduct")}</h2>
-            <div className="max-w-md space-y-4">
-              <Input placeholder="Product Name" value={productForm.name} onChange={(e) => setProductForm(p => ({...p, name: e.target.value}))} className="h-11" />
-              <Input placeholder="Quantity (e.g. 50 kg)" value={productForm.quantity} onChange={(e) => setProductForm(p => ({...p, quantity: e.target.value}))} className="h-11" />
-              <Input placeholder="Price (₹)" type="number" value={productForm.price} onChange={(e) => setProductForm(p => ({...p, price: e.target.value}))} className="h-11" />
-              <Input placeholder="Freshness (days)" type="number" value={productForm.freshnessDays} onChange={(e) => setProductForm(p => ({...p, freshnessDays: e.target.value}))} className="h-11" />
-              <Button className="w-full h-12 font-heading font-bold" onClick={handleAddProduct} disabled={addingProduct}>
-                {addingProduct ? "Adding..." : "Add Product"}
-              </Button>
-            </div>
-          </div>
-        );
+        return <AddProduct />;
       default:
         return null;
     }
