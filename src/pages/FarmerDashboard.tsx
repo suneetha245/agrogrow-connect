@@ -107,7 +107,7 @@ const FarmerDashboard = () => {
         </div>
       </header>
 
-      <main className="flex-1 container py-6">{renderContent()}</main>
+      <main className="flex-1 container py-6 pb-20">{renderContent()}</main>
 
       <nav className="sticky bottom-0 border-t border-border bg-card">
         <div className="container flex justify-around py-2">
