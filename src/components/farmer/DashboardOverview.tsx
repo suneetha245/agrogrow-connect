@@ -1,7 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { Package, ShoppingBag, Bug, TrendingUp, Clock, CheckCircle2, AlertTriangle } from "lucide-react";
+import { Package, ShoppingBag, Bug, TrendingUp, Clock, CheckCircle2, AlertTriangle, BarChart3 } from "lucide-react";
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts";
+import { format, subMonths, startOfMonth, endOfMonth, isWithinInterval } from "date-fns";
 
 interface Stats {
   totalProducts: number;
