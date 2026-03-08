@@ -201,6 +201,7 @@ const AddProduct = () => {
       category: form.category,
       description: form.description.trim() || null,
       freshness_days: form.freshnessDays ? parseInt(form.freshnessDays) : null,
+      stock: form.stock ? parseInt(form.stock) : 0,
     };
 
     if (imageFile || !editingId) {
