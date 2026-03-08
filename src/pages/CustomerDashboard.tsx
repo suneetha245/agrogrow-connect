@@ -563,29 +563,92 @@ const CustomerDashboard = () => {
               </div>
             ) : (
               <div className="space-y-3">
-                {orders.map((order) => (
-                  <div key={order.id} className="bg-card border border-border rounded-xl p-4 flex items-center gap-4">
-                    <div className="h-14 w-14 rounded-lg bg-secondary overflow-hidden shrink-0 flex items-center justify-center">
-                      {order.products?.image_url ? (
-                        <img src={order.products.image_url} alt="" className="h-full w-full object-cover" />
-                      ) : (
-                        <Package className="h-6 w-6 text-muted-foreground/30" />
+                {orders.map((order) => {
+                  const existingReview = reviews.find(r => r.order_id === order.id);
+                  const isReviewing = reviewingOrderId === order.id;
+                  return (
+                    <div key={order.id} className="bg-card border border-border rounded-xl p-4 space-y-3">
+                      <div className="flex items-center gap-4">
+                        <div className="h-14 w-14 rounded-lg bg-secondary overflow-hidden shrink-0 flex items-center justify-center">
+                          {order.products?.image_url ? (
+                            <img src={order.products.image_url} alt="" className="h-full w-full object-cover" />
+                          ) : (
+                            <Package className="h-6 w-6 text-muted-foreground/30" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-heading font-bold text-sm truncate">{order.products?.name || "Product"}</h3>
+                            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${statusBadge(order.status)}`}>
+                              {order.status}
+                            </span>
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Qty: {order.quantity} · ₹{order.total_price} · {order.payment_method === "cod" ? "Cash on Delivery" : "Online"}
+                          </p>
+                          <p className="text-xs text-muted-foreground">{new Date(order.created_at).toLocaleDateString()}</p>
+                        </div>
+                      </div>
+
+                      {/* Existing review display */}
+                      {existingReview && (
+                        <div className="bg-secondary/50 rounded-lg p-3 space-y-1">
+                          <div className="flex items-center gap-1">
+                            {[1, 2, 3, 4, 5].map(s => (
+                              <Star key={s} className={`h-3.5 w-3.5 ${s <= existingReview.rating ? "fill-primary text-primary" : "text-muted-foreground/30"}`} />
+                            ))}
+                            <span className="text-xs text-muted-foreground ml-1">Your review</span>
+                          </div>
+                          {existingReview.comment && <p className="text-xs text-muted-foreground">{existingReview.comment}</p>}
+                        </div>
+                      )}
+
+                      {/* Review button for delivered orders */}
+                      {order.status === "delivered" && !existingReview && !isReviewing && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="gap-1.5 font-heading font-bold"
+                          onClick={() => { setReviewingOrderId(order.id); setReviewRating(5); setReviewComment(""); }}
+                        >
+                          <Star className="h-3.5 w-3.5" /> Rate & Review
+                        </Button>
+                      )}
+
+                      {/* Review form */}
+                      {isReviewing && (
+                        <div className="border border-border rounded-lg p-4 space-y-3">
+                          <p className="text-sm font-heading font-bold">Rate this product</p>
+                          <div className="flex items-center gap-1">
+                            {[1, 2, 3, 4, 5].map(s => (
+                              <button key={s} onClick={() => setReviewRating(s)} className="p-0.5">
+                                <Star className={`h-6 w-6 transition-colors ${s <= reviewRating ? "fill-primary text-primary" : "text-muted-foreground/30 hover:text-primary/50"}`} />
+                              </button>
+                            ))}
+                            <span className="text-sm text-muted-foreground ml-2">{reviewRating}/5</span>
+                          </div>
+                          <Textarea
+                            placeholder="Share your experience (optional)"
+                            value={reviewComment}
+                            onChange={e => setReviewComment(e.target.value)}
+                            className="min-h-[60px] text-sm"
+                          />
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              className="font-heading font-bold"
+                              disabled={submittingReview}
+                              onClick={() => submitReview(order.id, order.product_id)}
+                            >
+                              {submittingReview ? "Submitting..." : "Submit Review"}
+                            </Button>
+                            <Button variant="ghost" size="sm" onClick={() => setReviewingOrderId(null)}>Cancel</Button>
+                          </div>
+                        </div>
                       )}
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-heading font-bold text-sm truncate">{order.products?.name || "Product"}</h3>
-                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${statusBadge(order.status)}`}>
-                          {order.status}
-                        </span>
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Qty: {order.quantity} · ₹{order.total_price} · {order.payment_method === "cod" ? "Cash on Delivery" : "Online"}
-                      </p>
-                      <p className="text-xs text-muted-foreground">{new Date(order.created_at).toLocaleDateString()}</p>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
