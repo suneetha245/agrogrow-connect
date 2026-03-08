@@ -137,6 +137,7 @@ const CustomerDashboard = () => {
 
   useEffect(() => {
     fetchProducts();
+    fetchAllProductReviews();
     if (user) {
       fetchOrders();
       fetchReviews();
