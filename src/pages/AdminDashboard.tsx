@@ -68,6 +68,10 @@ const AdminDashboard = () => {
   const [orderFilter, setOrderFilter] = useState("all");
   const [managingUserId, setManagingUserId] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
+  const [orderPaymentFilter, setOrderPaymentFilter] = useState("all");
+  const [orderSearch, setOrderSearch] = useState("");
+  const [dateFrom, setDateFrom] = useState<Date | undefined>(undefined);
+  const [dateTo, setDateTo] = useState<Date | undefined>(undefined);
 
   useEffect(() => {
     loadAll();
