@@ -135,8 +135,42 @@ const CustomerDashboard = () => {
 
   useEffect(() => {
     fetchProducts();
-    if (user) fetchOrders();
+    if (user) {
+      fetchOrders();
+      fetchReviews();
+    }
   }, [user]);
+
+  const fetchReviews = async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from("reviews")
+      .select("*")
+      .eq("customer_id", user.id);
+    if (data) setReviews(data as unknown as Review[]);
+  };
+
+  const submitReview = async (orderId: string, productId: string) => {
+    if (!user) return;
+    setSubmittingReview(true);
+    const { error } = await supabase.from("reviews").insert({
+      order_id: orderId,
+      product_id: productId,
+      customer_id: user.id,
+      rating: reviewRating,
+      comment: reviewComment.trim() || null,
+    } as any);
+    setSubmittingReview(false);
+    if (error) {
+      toast({ title: "Error", description: "Failed to submit review", variant: "destructive" });
+    } else {
+      toast({ title: "Review submitted! ⭐" });
+      setReviewingOrderId(null);
+      setReviewRating(5);
+      setReviewComment("");
+      fetchReviews();
+    }
+  };
 
   const fetchProducts = async () => {
     const { data: prods } = await supabase
