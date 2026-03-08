@@ -7,6 +7,7 @@ import LanguageSelector from "@/components/LanguageSelector";
 import { Button } from "@/components/ui/button";
 import CropRecommendation from "@/components/farmer/CropRecommendation";
 import AddProduct from "@/components/farmer/AddProduct";
+import DiseaseDetection from "@/components/farmer/DiseaseDetection";
 import { Sprout, Bug, Landmark, Users, PlusCircle, LogOut } from "lucide-react";
 import logo from "@/assets/logo.png";
 
@@ -34,17 +35,7 @@ const FarmerDashboard = () => {
       case "crop":
         return <CropRecommendation />;
       case "disease":
-        return (
-          <div className="space-y-6">
-            <h2 className="text-2xl font-heading font-black text-foreground">{t("diseaseDetection")}</h2>
-            <p className="text-muted-foreground">{t("diseaseDetectionDesc")}</p>
-            <div className="border-2 border-dashed border-border rounded-xl p-12 text-center">
-              <Bug className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground font-medium">Upload a crop image to detect diseases</p>
-              <Button className="mt-4 font-heading font-bold">Upload Image</Button>
-            </div>
-          </div>
-        );
+        return <DiseaseDetection />;
       case "govt":
         return (
           <div className="space-y-6">
