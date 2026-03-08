@@ -223,6 +223,7 @@ const AdminDashboard = () => {
     }
   };
 
+  const filteredUsers = allUsers.filter(u => {
     const matchesSearch = u.full_name.toLowerCase().includes(userSearch.toLowerCase()) || u.email.toLowerCase().includes(userSearch.toLowerCase());
     const matchesRole = roleFilter === "all" || u.role === roleFilter;
     return matchesSearch && matchesRole;
