@@ -52,6 +52,8 @@ const CommunityForum = () => {
   const [expandedPost, setExpandedPost] = useState<string | null>(null);
   const [replyText, setReplyText] = useState<Record<string, string>>({});
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [likeCounts, setLikeCounts] = useState<Record<string, number>>({});
+  const [userLikes, setUserLikes] = useState<Set<string>>(new Set());
 
   // New post state
   const [newPostOpen, setNewPostOpen] = useState(false);
