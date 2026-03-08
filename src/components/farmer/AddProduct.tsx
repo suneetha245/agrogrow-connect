@@ -46,6 +46,11 @@ const AddProduct = () => {
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm);
 
+  // Cropper state
+  const [rawImageSrc, setRawImageSrc] = useState<string | null>(null);
+  const [crop, setCrop] = useState<CropType>();
+  const [showCropper, setShowCropper] = useState(false);
+  const imgRef = useRef<HTMLImageElement>(null);
   useEffect(() => {
     if (user) fetchProducts();
   }, [user]);
