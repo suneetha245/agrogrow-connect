@@ -250,7 +250,30 @@ const AdminDashboard = () => {
     return matchesStatus && matchesPayment && matchesSearch && matchesDateFrom && matchesDateTo;
   });
 
-  const statusColor: Record<string, string> = {
+  const exportOrdersCSV = () => {
+    if (filteredOrders.length === 0) return;
+    const headers = ["Order ID", "Product", "Customer", "Farmer", "Quantity", "Total Price", "Status", "Payment Method", "Date"];
+    const rows = filteredOrders.map((o: any) => [
+      o.id,
+      `"${(o.product_name || "").replace(/"/g, '""')}"`,
+      `"${(o.customer_name || "").replace(/"/g, '""')}"`,
+      `"${(o.farmer_name || "").replace(/"/g, '""')}"`,
+      o.quantity,
+      o.total_price,
+      o.status,
+      o.payment_method || "",
+      new Date(o.created_at).toLocaleDateString(),
+    ]);
+    const csv = [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `orders-${format(new Date(), "yyyy-MM-dd")}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
     pending: "bg-amber-100 text-amber-800", confirmed: "bg-blue-100 text-blue-800",
     shipped: "bg-purple-100 text-purple-800", delivered: "bg-green-100 text-green-800",
     cancelled: "bg-red-100 text-red-800",
