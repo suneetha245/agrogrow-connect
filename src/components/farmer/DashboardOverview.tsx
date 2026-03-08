@@ -42,7 +42,7 @@ const DashboardOverview = ({ onNavigate }: { onNavigate: (tab: string) => void }
     const scans = scansRes.data || [];
 
     // Fetch all orders for revenue/status counts
-    const { data: allOrders } = await supabase.from("orders").select("status, total_price").eq("farmer_id", user.id);
+    const { data: allOrders } = await supabase.from("orders").select("status, total_price, created_at").eq("farmer_id", user.id);
     const all = allOrders || [];
 
     setStats({
