@@ -103,6 +103,7 @@ export const translations: Record<Language, Record<string, string>> = {
     facilitiesTitle: "ನಮ್ಮ ಸೌಲಭ್ಯಗಳು",
     facilitiesSubtitle: "ಆಧುನಿಕ ರೈತರಿಗೆ ಬೇಕಾದ ಎಲ್ಲವೂ",
     cropRecommendation: "ಬೆಳೆ ಶಿಫಾರಸು",
+    dashboard: "ಡ್ಯಾಶ್‌ಬೋರ್ಡ್",
     cropRecommendationDesc: "ನಿಮ್ಮ ಮಣ್ಣಿನ ಪ್ರಕಾರ, ಋತು ಮತ್ತು ಮಾರುಕಟ್ಟೆ ಬೇಡಿಕೆಯ ಆಧಾರದ ಮೇಲೆ ಉತ್ತಮ ಬೆಳೆಗಳ ಬಗ್ಗೆ AI ಸಲಹೆಗಳನ್ನು ಪಡೆಯಿರಿ.",
     diseaseDetection: "ರೋಗ ಪತ್ತೆ",
     diseaseDetectionDesc: "ನಿಮ್ಮ ಬೆಳೆಯ ಫೋಟೋ ಅಪ್ಲೋಡ್ ಮಾಡಿ ಮತ್ತು ನಮ್ಮ AI ತಕ್ಷಣ ರೋಗಗಳನ್ನು ಪತ್ತೆ ಮಾಡುತ್ತದೆ.",
