@@ -236,7 +236,10 @@ const CustomerDashboard = () => {
           <div className="flex items-center gap-2">
             <NotificationBell />
             <LanguageSelector />
-            <span className="text-sm font-medium text-foreground hidden sm:inline">{profile?.full_name}</span>
+            <Button variant="ghost" size="sm" className="hidden sm:inline-flex gap-1" onClick={() => setActiveView("profile")}>
+              <User className="h-4 w-4" />
+              <span className="text-sm font-medium text-foreground">{profile?.full_name}</span>
+            </Button>
             <Button variant="ghost" size="sm" className="gap-1 text-destructive" onClick={handleLogout}>
               <LogOut className="h-4 w-4" />
             </Button>
