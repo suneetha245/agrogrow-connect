@@ -10,8 +10,9 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import {
   ShoppingBag, ShoppingCart, LogOut, Package, Search, Plus, Minus,
-  Trash2, MapPin, Leaf, Clock, CreditCard, Banknote, CheckCircle2, ArrowLeft, User
+  Trash2, MapPin, Leaf, Clock, CreditCard, Banknote, CheckCircle2, ArrowLeft, User, Star
 } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
