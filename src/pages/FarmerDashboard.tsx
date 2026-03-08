@@ -9,10 +9,12 @@ import CropRecommendation from "@/components/farmer/CropRecommendation";
 import AddProduct from "@/components/farmer/AddProduct";
 import DiseaseDetection from "@/components/farmer/DiseaseDetection";
 import OrderManagement from "@/components/farmer/OrderManagement";
-import { Sprout, Bug, Landmark, Users, PlusCircle, LogOut, Package } from "lucide-react";
+import DashboardOverview from "@/components/farmer/DashboardOverview";
+import { Sprout, Bug, Landmark, Users, PlusCircle, LogOut, Package, LayoutDashboard } from "lucide-react";
 import logo from "@/assets/logo.png";
 
 const tabs = [
+  { id: "dashboard", icon: LayoutDashboard, labelKey: "dashboard" },
   { id: "crop", icon: Sprout, labelKey: "cropRecommendation" },
   { id: "disease", icon: Bug, labelKey: "diseaseDetection" },
   { id: "orders", icon: Package, labelKey: "orders" },
@@ -25,7 +27,7 @@ const FarmerDashboard = () => {
   const { t } = useLanguage();
   const { profile, signOut } = useAuth();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("crop");
+  const [activeTab, setActiveTab] = useState("dashboard");
 
   const handleLogout = async () => {
     await signOut();
@@ -34,6 +36,8 @@ const FarmerDashboard = () => {
 
   const renderContent = () => {
     switch (activeTab) {
+      case "dashboard":
+        return <DashboardOverview onNavigate={setActiveTab} />;
       case "crop":
         return <CropRecommendation />;
       case "disease":
