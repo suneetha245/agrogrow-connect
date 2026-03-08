@@ -254,6 +254,7 @@ const CustomerDashboard = () => {
       setCart([]);
       setOrderSuccess(true);
       fetchOrders();
+      fetchProducts();
     } catch (err) {
       console.error(err);
       toast({ title: "Failed to place order. Please try again.", variant: "destructive" });
