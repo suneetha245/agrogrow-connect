@@ -10,7 +10,8 @@ import AddProduct from "@/components/farmer/AddProduct";
 import DiseaseDetection from "@/components/farmer/DiseaseDetection";
 import OrderManagement from "@/components/farmer/OrderManagement";
 import DashboardOverview from "@/components/farmer/DashboardOverview";
-import { Sprout, Bug, Landmark, Users, PlusCircle, LogOut, Package, LayoutDashboard } from "lucide-react";
+import FarmerProfile from "@/components/farmer/FarmerProfile";
+import { Sprout, Bug, Landmark, Users, PlusCircle, LogOut, Package, LayoutDashboard, User } from "lucide-react";
 import logo from "@/assets/logo.png";
 
 const tabs = [
@@ -21,6 +22,7 @@ const tabs = [
   { id: "govt", icon: Landmark, labelKey: "governmentFacilities" },
   { id: "community", icon: Users, labelKey: "community" },
   { id: "addProduct", icon: PlusCircle, labelKey: "addProduct" },
+  { id: "profile", icon: User, labelKey: "profile" },
 ] as const;
 
 const FarmerDashboard = () => {
@@ -83,6 +85,8 @@ const FarmerDashboard = () => {
         );
       case "addProduct":
         return <AddProduct />;
+      case "profile":
+        return <FarmerProfile />;
       default:
         return null;
     }
