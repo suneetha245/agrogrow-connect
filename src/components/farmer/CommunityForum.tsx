@@ -446,15 +446,28 @@ const CommunityForum = () => {
                     )}
                   </div>
 
-                  {/* Expand Button */}
-                  <button
-                    onClick={() => handleExpand(post.id)}
-                    className="mt-3 flex items-center gap-1.5 text-xs font-medium text-primary hover:underline"
-                  >
-                    <MessageCircle className="h-3.5 w-3.5" />
-                    {isExpanded ? "Hide replies" : `Replies${postReplies.length > 0 ? ` (${postReplies.length})` : ""}`}
-                    {isExpanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
-                  </button>
+                  {/* Like & Reply Buttons */}
+                  <div className="mt-3 flex items-center gap-4">
+                    <button
+                      onClick={() => handleToggleLike(post.id)}
+                      className={`flex items-center gap-1.5 text-xs font-medium transition-colors ${
+                        userLikes.has(post.id)
+                          ? "text-red-500"
+                          : "text-muted-foreground hover:text-red-500"
+                      }`}
+                    >
+                      <Heart className={`h-4 w-4 ${userLikes.has(post.id) ? "fill-red-500" : ""}`} />
+                      {likeCounts[post.id] || 0}
+                    </button>
+                    <button
+                      onClick={() => handleExpand(post.id)}
+                      className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-primary transition-colors"
+                    >
+                      <MessageCircle className="h-3.5 w-3.5" />
+                      {isExpanded ? "Hide replies" : `Replies${postReplies.length > 0 ? ` (${postReplies.length})` : ""}`}
+                      {isExpanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+                    </button>
+                  </div>
                 </div>
 
                 {/* Replies Section */}
