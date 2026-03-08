@@ -4,10 +4,9 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import LanguageSelector from "@/components/LanguageSelector";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
-import { Sprout, Bug, Landmark, Users, PlusCircle, User, LogOut, MessageSquare } from "lucide-react";
+import CropRecommendation from "@/components/farmer/CropRecommendation";
+import AddProduct from "@/components/farmer/AddProduct";
+import { Sprout, Bug, Landmark, Users, PlusCircle, LogOut } from "lucide-react";
 import logo from "@/assets/logo.png";
 
 const tabs = [
