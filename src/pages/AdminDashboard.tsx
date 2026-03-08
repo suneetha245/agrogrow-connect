@@ -7,10 +7,14 @@ import { useToast } from "@/hooks/use-toast";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 import {
   Check, X, LogOut, Shield, Users, Package, LayoutDashboard,
   TrendingUp, ShoppingBag, Sprout, Search, RefreshCw, BarChart3,
-  Clock, CheckCircle2, Truck, MapPin, Trash2, UserCog
+  Clock, CheckCircle2, Truck, MapPin, Trash2, UserCog, CalendarIcon
 } from "lucide-react";
 import logo from "@/assets/logo.png";
 
