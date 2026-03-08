@@ -76,6 +76,7 @@ export const translations: Record<Language, Record<string, string>> = {
     feedback: "Feedback",
     addProduct: "Add Product",
     myOrders: "My Orders",
+    orders: "Orders",
     cart: "Cart",
     
     // Footer
@@ -146,6 +147,7 @@ export const translations: Record<Language, Record<string, string>> = {
     feedback: "ಅಭಿಪ್ರಾಯ",
     addProduct: "ಉತ್ಪನ್ನ ಸೇರಿಸಿ",
     myOrders: "ನನ್ನ ಆರ್ಡರ್‌ಗಳು",
+    orders: "ಆರ್ಡರ್‌ಗಳು",
     cart: "ಕಾರ್ಟ್",
     footerDesc: "ಉತ್ತಮ ನಾಳೆಗಾಗಿ ತಂತ್ರಜ್ಞಾನದೊಂದಿಗೆ ರೈತರನ್ನು ಸಬಲಗೊಳಿಸುವುದು.",
     quickLinks: "ತ್ವರಿತ ಲಿಂಕ್‌ಗಳು",
@@ -214,6 +216,7 @@ export const translations: Record<Language, Record<string, string>> = {
     feedback: "प्रतिक्रिया",
     addProduct: "उत्पाद जोड़ें",
     myOrders: "मेरे ऑर्डर",
+    orders: "ऑर्डर",
     cart: "कार्ट",
     footerDesc: "बेहतर कल के लिए तकनीक से किसानों को सशक्त बनाना।",
     quickLinks: "त्वरित लिंक",
