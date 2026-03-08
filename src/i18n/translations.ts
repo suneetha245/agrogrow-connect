@@ -19,6 +19,7 @@ export const translations: Record<Language, Record<string, string>> = {
     facilitiesTitle: "Our Facilities",
     facilitiesSubtitle: "Everything a modern farmer needs to succeed",
     cropRecommendation: "Crop Recommendation",
+    dashboard: "Dashboard",
     cropRecommendationDesc: "Get AI-powered suggestions on the best crops to grow based on your soil type, season, and market demand. Maximize your profit with data-driven insights.",
     diseaseDetection: "Disease Detection",
     diseaseDetectionDesc: "Upload a photo of your crop and our AI will detect diseases instantly. Get treatment solutions and product recommendations to save your harvest.",
