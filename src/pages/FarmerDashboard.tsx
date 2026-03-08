@@ -8,12 +8,14 @@ import { Button } from "@/components/ui/button";
 import CropRecommendation from "@/components/farmer/CropRecommendation";
 import AddProduct from "@/components/farmer/AddProduct";
 import DiseaseDetection from "@/components/farmer/DiseaseDetection";
-import { Sprout, Bug, Landmark, Users, PlusCircle, LogOut } from "lucide-react";
+import OrderManagement from "@/components/farmer/OrderManagement";
+import { Sprout, Bug, Landmark, Users, PlusCircle, LogOut, Package } from "lucide-react";
 import logo from "@/assets/logo.png";
 
 const tabs = [
   { id: "crop", icon: Sprout, labelKey: "cropRecommendation" },
   { id: "disease", icon: Bug, labelKey: "diseaseDetection" },
+  { id: "orders", icon: Package, labelKey: "orders" },
   { id: "govt", icon: Landmark, labelKey: "governmentFacilities" },
   { id: "community", icon: Users, labelKey: "community" },
   { id: "addProduct", icon: PlusCircle, labelKey: "addProduct" },
