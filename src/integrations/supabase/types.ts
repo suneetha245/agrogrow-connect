@@ -21,6 +21,7 @@ export type Database = {
           content: string
           created_at: string
           id: string
+          image_url: string | null
           likes: number
           title: string
           user_id: string
@@ -31,6 +32,7 @@ export type Database = {
           content: string
           created_at?: string
           id?: string
+          image_url?: string | null
           likes?: number
           title: string
           user_id: string
@@ -41,6 +43,7 @@ export type Database = {
           content?: string
           created_at?: string
           id?: string
+          image_url?: string | null
           likes?: number
           title?: string
           user_id?: string
