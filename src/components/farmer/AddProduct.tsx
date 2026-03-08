@@ -23,13 +23,14 @@ interface Product {
   freshness_days: number | null;
   image_url: string | null;
   available: boolean | null;
+  stock: number;
   created_at: string;
 }
 
 const categories = ["Vegetables", "Fruits", "Grains", "Pulses", "Spices", "Dairy", "Other"];
 const units = ["kg", "quintal", "ton", "dozen", "piece", "litre"];
 
-const emptyForm = { name: "", quantity: "", price: "", unit: "kg", category: "Vegetables", description: "", freshnessDays: "" };
+const emptyForm = { name: "", quantity: "", price: "", unit: "kg", category: "Vegetables", description: "", freshnessDays: "", stock: "" };
 
 const AddProduct = () => {
   const { t } = useLanguage();
@@ -173,10 +174,10 @@ const AddProduct = () => {
       category: product.category || "Vegetables",
       description: product.description || "",
       freshnessDays: product.freshness_days ? String(product.freshness_days) : "",
+      stock: String(product.stock || 0),
     });
     setImagePreview(product.image_url || null);
     setImageFile(null);
-    // Scroll to form
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -200,6 +201,7 @@ const AddProduct = () => {
       category: form.category,
       description: form.description.trim() || null,
       freshness_days: form.freshnessDays ? parseInt(form.freshnessDays) : null,
+      stock: form.stock ? parseInt(form.stock) : 0,
     };
 
     if (imageFile || !editingId) {
@@ -290,7 +292,10 @@ const AddProduct = () => {
             </SelectContent>
           </Select>
         </div>
-        <Input placeholder="Freshness (days)" type="number" value={form.freshnessDays} onChange={(e) => setForm((f) => ({ ...f, freshnessDays: e.target.value }))} className="h-11" />
+        <div className="grid grid-cols-2 gap-3">
+          <Input placeholder="Freshness (days)" type="number" value={form.freshnessDays} onChange={(e) => setForm((f) => ({ ...f, freshnessDays: e.target.value }))} className="h-11" />
+          <Input placeholder="Stock quantity *" type="number" min="0" value={form.stock} onChange={(e) => setForm((f) => ({ ...f, stock: e.target.value }))} className="h-11" />
+        </div>
         <Textarea placeholder="Description (optional)" value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} rows={2} />
 
         {/* Image Upload & Cropper */}
@@ -379,6 +384,9 @@ const AddProduct = () => {
                   </div>
                   <div className="flex gap-2 flex-wrap">
                     <Badge variant="outline" className="text-xs">{p.quantity}</Badge>
+                    <Badge variant={p.stock > 0 ? "default" : "destructive"} className="text-xs">
+                      📦 Stock: {p.stock}
+                    </Badge>
                     {p.category && <Badge variant="secondary" className="text-xs">{p.category}</Badge>}
                     {p.freshness_days && <Badge variant="outline" className="text-xs">🟢 {p.freshness_days}d fresh</Badge>}
                   </div>
