@@ -98,6 +98,7 @@ const FarmerDashboard = () => {
             <span className="font-heading font-extrabold text-primary">AgroAssist</span>
           </div>
           <div className="flex items-center gap-2">
+            <NotificationBell />
             <LanguageSelector />
             <span className="text-sm font-medium text-foreground hidden sm:inline">{profile?.full_name}</span>
             <Button variant="ghost" size="sm" className="gap-1 text-destructive" onClick={handleLogout}>
