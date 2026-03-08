@@ -5,9 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
+import {
   Check, X, LogOut, Shield, Users, Package, LayoutDashboard,
   TrendingUp, ShoppingBag, Sprout, Search, RefreshCw, BarChart3,
-  Clock, CheckCircle2, Truck, MapPin
+  Clock, CheckCircle2, Truck, MapPin, Trash2, UserCog
 } from "lucide-react";
 import logo from "@/assets/logo.png";
 
