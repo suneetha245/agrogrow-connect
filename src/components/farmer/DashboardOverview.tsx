@@ -15,6 +15,7 @@ interface Stats {
   totalRevenue: number;
   recentScans: { id: string; disease_name: string; severity: string | null; created_at: string; detected: boolean }[];
   recentOrders: { id: string; status: string; total_price: number; created_at: string; product_name: string }[];
+  allOrdersRaw: { status: string; total_price: number; created_at: string }[];
 }
 
 const DashboardOverview = ({ onNavigate }: { onNavigate: (tab: string) => void }) => {
