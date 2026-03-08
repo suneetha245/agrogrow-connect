@@ -5,9 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
+import {
   Check, X, LogOut, Shield, Users, Package, LayoutDashboard,
   TrendingUp, ShoppingBag, Sprout, Search, RefreshCw, BarChart3,
-  Clock, CheckCircle2, Truck, MapPin
+  Clock, CheckCircle2, Truck, MapPin, Trash2, UserCog
 } from "lucide-react";
 import logo from "@/assets/logo.png";
 
@@ -59,6 +62,8 @@ const AdminDashboard = () => {
   const [userSearch, setUserSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
   const [orderFilter, setOrderFilter] = useState("all");
+  const [managingUserId, setManagingUserId] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
 
   useEffect(() => {
     loadAll();
@@ -185,6 +190,37 @@ const AdminDashboard = () => {
     toast({ title: `Farmer ${status}!` });
     fetchPendingFarmers();
     fetchStats();
+  };
+
+  const handleChangeRole = async (userId: string, newRole: string) => {
+    setManagingUserId(userId);
+    const { data, error } = await supabase.functions.invoke("admin-manage-user", {
+      body: { action: "change_role", user_id: userId, new_role: newRole },
+    });
+    setManagingUserId(null);
+    if (error || data?.error) {
+      toast({ title: "Error", description: data?.error || "Failed to change role", variant: "destructive" });
+    } else {
+      toast({ title: "Role updated", description: `User role changed to ${newRole}` });
+      fetchAllUsers();
+      fetchStats();
+    }
+  };
+
+  const handleDeleteUser = async (userId: string) => {
+    setManagingUserId(userId);
+    const { data, error } = await supabase.functions.invoke("admin-manage-user", {
+      body: { action: "delete_user", user_id: userId },
+    });
+    setManagingUserId(null);
+    setConfirmDelete(null);
+    if (error || data?.error) {
+      toast({ title: "Error", description: data?.error || "Failed to delete user", variant: "destructive" });
+    } else {
+      toast({ title: "User deleted", description: "User has been removed from the platform" });
+      fetchAllUsers();
+      fetchStats();
+    }
   };
 
   const filteredUsers = allUsers.filter(u => {
@@ -388,6 +424,7 @@ const AdminDashboard = () => {
                         <th className="text-left p-3 font-heading font-bold text-foreground">Role</th>
                         <th className="text-left p-3 font-heading font-bold text-foreground hidden md:table-cell">Location</th>
                         <th className="text-left p-3 font-heading font-bold text-foreground hidden md:table-cell">Joined</th>
+                        <th className="text-right p-3 font-heading font-bold text-foreground">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -399,13 +436,43 @@ const AdminDashboard = () => {
                           </td>
                           <td className="p-3 text-muted-foreground hidden sm:table-cell">{user.email}</td>
                           <td className="p-3">
-                            <span className={`text-xs px-2 py-1 rounded-full font-medium ${
-                              user.role === "admin" ? "bg-purple-100 text-purple-800" :
-                              user.role === "farmer" ? "bg-green-100 text-green-800" : "bg-blue-100 text-blue-800"
-                            }`}>{user.role}</span>
+                            <Select
+                              value={user.role}
+                              onValueChange={(val) => handleChangeRole(user.user_id, val)}
+                              disabled={managingUserId === user.user_id}
+                            >
+                              <SelectTrigger className="w-28 h-8 text-xs">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="admin">Admin</SelectItem>
+                                <SelectItem value="farmer">Farmer</SelectItem>
+                                <SelectItem value="customer">Customer</SelectItem>
+                              </SelectContent>
+                            </Select>
                           </td>
                           <td className="p-3 text-muted-foreground hidden md:table-cell">{[user.district, user.state].filter(Boolean).join(", ") || "—"}</td>
                           <td className="p-3 text-muted-foreground hidden md:table-cell">{new Date(user.created_at).toLocaleDateString()}</td>
+                          <td className="p-3 text-right">
+                            {confirmDelete === user.user_id ? (
+                              <div className="flex items-center justify-end gap-1">
+                                <Button size="sm" variant="destructive" className="h-7 text-xs gap-1"
+                                  disabled={managingUserId === user.user_id}
+                                  onClick={() => handleDeleteUser(user.user_id)}>
+                                  {managingUserId === user.user_id ? "..." : "Confirm"}
+                                </Button>
+                                <Button size="sm" variant="outline" className="h-7 text-xs"
+                                  onClick={() => setConfirmDelete(null)}>
+                                  Cancel
+                                </Button>
+                              </div>
+                            ) : (
+                              <Button size="sm" variant="ghost" className="h-7 text-xs gap-1 text-destructive hover:text-destructive"
+                                onClick={() => setConfirmDelete(user.user_id)}>
+                                <Trash2 className="h-3 w-3" /> Delete
+                              </Button>
+                            )}
+                          </td>
                         </tr>
                       ))}
                     </tbody>
