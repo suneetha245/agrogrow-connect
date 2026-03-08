@@ -92,6 +92,7 @@ const CustomerDashboard = () => {
 
   // Review state
   const [reviews, setReviews] = useState<Review[]>([]);
+  const [allProductReviews, setAllProductReviews] = useState<Review[]>([]);
   const [reviewingOrderId, setReviewingOrderId] = useState<string | null>(null);
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewComment, setReviewComment] = useState("");
@@ -136,6 +137,7 @@ const CustomerDashboard = () => {
 
   useEffect(() => {
     fetchProducts();
+    fetchAllProductReviews();
     if (user) {
       fetchOrders();
       fetchReviews();
@@ -170,7 +172,20 @@ const CustomerDashboard = () => {
       setReviewRating(5);
       setReviewComment("");
       fetchReviews();
+      fetchAllProductReviews();
     }
+  };
+
+  const fetchAllProductReviews = async () => {
+    const { data } = await supabase.from("reviews").select("*");
+    if (data) setAllProductReviews(data as unknown as Review[]);
+  };
+
+  const getProductRating = (productId: string) => {
+    const productReviews = allProductReviews.filter(r => r.product_id === productId);
+    if (productReviews.length === 0) return null;
+    const avg = productReviews.reduce((s, r) => s + r.rating, 0) / productReviews.length;
+    return { avg: Math.round(avg * 10) / 10, count: productReviews.length };
   };
 
   const fetchProducts = async () => {
@@ -370,6 +385,21 @@ const CustomerDashboard = () => {
                         </>
                       )}
                     </div>
+
+                    {(() => {
+                      const rating = getProductRating(product.id);
+                      return rating ? (
+                        <div className="flex items-center gap-1.5">
+                          <div className="flex items-center gap-0.5">
+                            {[1, 2, 3, 4, 5].map(s => (
+                              <Star key={s} className={`h-3 w-3 ${s <= Math.round(rating.avg) ? "fill-primary text-primary" : "text-muted-foreground/30"}`} />
+                            ))}
+                          </div>
+                          <span className="text-xs font-medium text-foreground">{rating.avg}</span>
+                          <span className="text-xs text-muted-foreground">({rating.count})</span>
+                        </div>
+                      ) : null;
+                    })()}
 
                     <div className="flex items-center justify-between">
                       <span className="text-lg font-heading font-black text-primary">₹{product.price}<span className="text-xs font-normal text-muted-foreground">/{product.unit || "kg"}</span></span>
