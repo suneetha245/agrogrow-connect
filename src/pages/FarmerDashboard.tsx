@@ -11,6 +11,7 @@ import DiseaseDetection from "@/components/farmer/DiseaseDetection";
 import OrderManagement from "@/components/farmer/OrderManagement";
 import DashboardOverview from "@/components/farmer/DashboardOverview";
 import FarmerProfile from "@/components/farmer/FarmerProfile";
+import FeedbackForm from "@/components/farmer/FeedbackForm";
 import { Sprout, Bug, Landmark, Users, PlusCircle, LogOut, Package, LayoutDashboard, User } from "lucide-react";
 import logo from "@/assets/logo.png";
 
