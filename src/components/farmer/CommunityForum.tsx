@@ -90,6 +90,25 @@ const CommunityForum = () => {
       .order("created_at", { ascending: false });
     setPosts((data as Post[]) || []);
     setLoading(false);
+    // Fetch likes after posts
+    fetchAllLikes(data?.map((p: any) => p.id) || []);
+  };
+
+  const fetchAllLikes = async (postIds: string[]) => {
+    if (postIds.length === 0) return;
+    const { data: allLikes } = await supabase
+      .from("community_likes")
+      .select("post_id, user_id")
+      .in("post_id", postIds);
+    
+    const counts: Record<string, number> = {};
+    const liked = new Set<string>();
+    (allLikes || []).forEach((l: any) => {
+      counts[l.post_id] = (counts[l.post_id] || 0) + 1;
+      if (l.user_id === user?.id) liked.add(l.post_id);
+    });
+    setLikeCounts(counts);
+    setUserLikes(liked);
   };
 
   const fetchReplies = async (postId: string) => {
