@@ -219,6 +219,27 @@ const CommunityForum = () => {
     }
   };
 
+  const handleToggleLike = async (postId: string) => {
+    if (!user) return;
+    const alreadyLiked = userLikes.has(postId);
+    // Optimistic update
+    setUserLikes((prev) => {
+      const next = new Set(prev);
+      alreadyLiked ? next.delete(postId) : next.add(postId);
+      return next;
+    });
+    setLikeCounts((prev) => ({
+      ...prev,
+      [postId]: (prev[postId] || 0) + (alreadyLiked ? -1 : 1),
+    }));
+
+    if (alreadyLiked) {
+      await supabase.from("community_likes").delete().eq("post_id", postId).eq("user_id", user.id);
+    } else {
+      await supabase.from("community_likes").insert({ post_id: postId, user_id: user.id });
+    }
+  };
+
   const handleDeleteReply = async (replyId: string, postId: string) => {
     const { error } = await supabase.from("community_replies").delete().eq("id", replyId);
     if (!error) fetchReplies(postId);
