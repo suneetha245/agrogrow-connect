@@ -237,7 +237,18 @@ const AdminDashboard = () => {
     return matchesSearch && matchesRole;
   });
 
-  const filteredOrders = orderFilter === "all" ? allOrders : allOrders.filter(o => o.status === orderFilter);
+  const filteredOrders = allOrders.filter(o => {
+    const matchesStatus = orderFilter === "all" || o.status === orderFilter;
+    const matchesPayment = orderPaymentFilter === "all" || o.payment_method === orderPaymentFilter;
+    const matchesSearch = orderSearch === "" ||
+      o.product_name?.toLowerCase().includes(orderSearch.toLowerCase()) ||
+      o.customer_name?.toLowerCase().includes(orderSearch.toLowerCase()) ||
+      o.farmer_name?.toLowerCase().includes(orderSearch.toLowerCase());
+    const orderDate = new Date(o.created_at);
+    const matchesDateFrom = !dateFrom || orderDate >= dateFrom;
+    const matchesDateTo = !dateTo || orderDate <= new Date(dateTo.getTime() + 86400000);
+    return matchesStatus && matchesPayment && matchesSearch && matchesDateFrom && matchesDateTo;
+  });
 
   const statusColor: Record<string, string> = {
     pending: "bg-amber-100 text-amber-800", confirmed: "bg-blue-100 text-blue-800",
