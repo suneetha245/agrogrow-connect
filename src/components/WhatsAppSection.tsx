@@ -1,6 +1,9 @@
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { MessageCircle } from "lucide-react";
+import whatsappQR from "@/assets/whatsapp-qr.jpeg";
+
+const WHATSAPP_LINK = "https://chat.whatsapp.com/LQWPbNtHIsaAHFlOb7Dh81?mode=hqctcla";
 
 const WhatsAppSection = () => {
   const { t } = useLanguage();
@@ -17,8 +20,15 @@ const WhatsAppSection = () => {
               {t("joinWhatsApp")}
             </h2>
             <p className="text-primary-foreground/80 text-lg">{t("whatsAppDesc")}</p>
+
+            {/* QR Code */}
+            <div className="inline-block rounded-2xl overflow-hidden border-4 border-primary-foreground/20 shadow-lg">
+              <img src={whatsappQR} alt="Scan to join AgroAssist WhatsApp group" className="w-48 h-48 object-cover" />
+            </div>
+            <p className="text-primary-foreground/70 text-sm">Scan the QR code or click the button below</p>
+
             <a
-              href="https://chat.whatsapp.com/your-group-link"
+              href={WHATSAPP_LINK}
               target="_blank"
               rel="noopener noreferrer"
             >
