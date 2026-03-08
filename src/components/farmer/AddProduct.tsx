@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,7 +8,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { PlusCircle, Trash2, ImagePlus, Package, Loader2, Pencil, X, Save } from "lucide-react";
+import { PlusCircle, Trash2, ImagePlus, Package, Loader2, Pencil, X, Save, Crop } from "lucide-react";
+import ReactCrop, { type Crop as CropType, centerCrop, makeAspectCrop } from "react-image-crop";
+import "react-image-crop/dist/ReactCrop.css";
 
 interface Product {
   id: string;
@@ -44,6 +46,11 @@ const AddProduct = () => {
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm);
 
+  // Cropper state
+  const [rawImageSrc, setRawImageSrc] = useState<string | null>(null);
+  const [crop, setCrop] = useState<CropType>();
+  const [showCropper, setShowCropper] = useState(false);
+  const imgRef = useRef<HTMLImageElement>(null);
   useEffect(() => {
     if (user) fetchProducts();
   }, [user]);
@@ -65,8 +72,73 @@ const AddProduct = () => {
       toast({ title: "Image must be under 5MB", variant: "destructive" });
       return;
     }
-    setImageFile(file);
-    setImagePreview(URL.createObjectURL(file));
+    const reader = new FileReader();
+    reader.onload = () => {
+      setRawImageSrc(reader.result as string);
+      setShowCropper(true);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const onImageLoad = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
+    const { width, height } = e.currentTarget;
+    const initialCrop = centerCrop(
+      makeAspectCrop({ unit: "%", width: 90 }, 4 / 3, width, height),
+      width,
+      height
+    );
+    setCrop(initialCrop);
+  }, []);
+
+  const getCroppedImage = (): Promise<File | null> => {
+    return new Promise((resolve) => {
+      const image = imgRef.current;
+      if (!image || !crop) { resolve(null); return; }
+
+      const canvas = document.createElement("canvas");
+      const scaleX = image.naturalWidth / image.width;
+      const scaleY = image.naturalHeight / image.height;
+
+      const pixelCrop = {
+        x: (crop.x / 100) * image.width * scaleX,
+        y: (crop.y / 100) * image.height * scaleY,
+        width: (crop.width / 100) * image.width * scaleX,
+        height: (crop.height / 100) * image.height * scaleY,
+      };
+
+      // Resize to max 800px wide for consistency
+      const maxWidth = 800;
+      const ratio = Math.min(maxWidth / pixelCrop.width, 1);
+      canvas.width = pixelCrop.width * ratio;
+      canvas.height = pixelCrop.height * ratio;
+
+      const ctx = canvas.getContext("2d");
+      if (!ctx) { resolve(null); return; }
+
+      ctx.drawImage(
+        image,
+        pixelCrop.x, pixelCrop.y, pixelCrop.width, pixelCrop.height,
+        0, 0, canvas.width, canvas.height
+      );
+
+      canvas.toBlob((blob) => {
+        if (blob) {
+          resolve(new File([blob], `product-${Date.now()}.jpg`, { type: "image/jpeg" }));
+        } else {
+          resolve(null);
+        }
+      }, "image/jpeg", 0.85);
+    });
+  };
+
+  const handleCropConfirm = async () => {
+    const croppedFile = await getCroppedImage();
+    if (croppedFile) {
+      setImageFile(croppedFile);
+      setImagePreview(URL.createObjectURL(croppedFile));
+    }
+    setShowCropper(false);
+    setRawImageSrc(null);
   };
 
   const uploadImage = async (): Promise<string | null> => {
@@ -87,6 +159,8 @@ const AddProduct = () => {
     setImageFile(null);
     setImagePreview(null);
     setEditingId(null);
+    setShowCropper(false);
+    setRawImageSrc(null);
   };
 
   const startEdit = (product: Product) => {
@@ -219,16 +293,40 @@ const AddProduct = () => {
         <Input placeholder="Freshness (days)" type="number" value={form.freshnessDays} onChange={(e) => setForm((f) => ({ ...f, freshnessDays: e.target.value }))} className="h-11" />
         <Textarea placeholder="Description (optional)" value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} rows={2} />
 
-        {/* Image Upload */}
+        {/* Image Upload & Cropper */}
         <div>
           <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
-          {imagePreview ? (
+
+          {showCropper && rawImageSrc ? (
+            <div className="space-y-3">
+              <p className="text-sm font-medium text-foreground flex items-center gap-1"><Crop className="h-4 w-4 text-primary" /> Crop your image (4:3)</p>
+              <div className="border border-border rounded-lg overflow-hidden bg-secondary">
+                <ReactCrop crop={crop} onChange={(_, pctCrop) => setCrop(pctCrop)} aspect={4 / 3} minWidth={50}>
+                  <img ref={imgRef} src={rawImageSrc} alt="Crop" onLoad={onImageLoad} className="max-h-64 w-full object-contain" />
+                </ReactCrop>
+              </div>
+              <div className="flex gap-2">
+                <Button size="sm" onClick={handleCropConfirm} className="gap-1 flex-1">
+                  <Crop className="h-4 w-4" /> Apply Crop
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => { setShowCropper(false); setRawImageSrc(null); }}>
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          ) : imagePreview ? (
             <div className="relative w-full h-40 rounded-lg overflow-hidden border border-border">
               <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
-              <button onClick={() => { setImageFile(null); setImagePreview(null); }}
-                className="absolute top-2 right-2 bg-destructive text-destructive-foreground rounded-full p-1">
-                <Trash2 className="h-4 w-4" />
-              </button>
+              <div className="absolute top-2 right-2 flex gap-1">
+                <button onClick={() => fileInputRef.current?.click()}
+                  className="bg-card/90 text-foreground rounded-full p-1.5 hover:bg-card">
+                  <Pencil className="h-3.5 w-3.5" />
+                </button>
+                <button onClick={() => { setImageFile(null); setImagePreview(null); }}
+                  className="bg-destructive text-destructive-foreground rounded-full p-1.5">
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+              </div>
             </div>
           ) : (
             <button onClick={() => fileInputRef.current?.click()}
