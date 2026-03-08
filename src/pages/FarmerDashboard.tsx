@@ -7,6 +7,7 @@ import LanguageSelector from "@/components/LanguageSelector";
 import { Button } from "@/components/ui/button";
 import CropRecommendation from "@/components/farmer/CropRecommendation";
 import AddProduct from "@/components/farmer/AddProduct";
+import DiseaseDetection from "@/components/farmer/DiseaseDetection";
 import { Sprout, Bug, Landmark, Users, PlusCircle, LogOut } from "lucide-react";
 import logo from "@/assets/logo.png";
 
