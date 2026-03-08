@@ -76,6 +76,7 @@ export const translations: Record<Language, Record<string, string>> = {
     feedback: "Feedback",
     addProduct: "Add Product",
     myOrders: "My Orders",
+    orders: "Orders",
     cart: "Cart",
     
     // Footer
