@@ -1,5 +1,6 @@
 import { useState } from "react";
 import NotificationBell from "@/components/NotificationBell";
+import CommunityForum from "@/components/farmer/CommunityForum";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
