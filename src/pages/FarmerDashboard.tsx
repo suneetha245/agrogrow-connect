@@ -36,6 +36,8 @@ const FarmerDashboard = () => {
 
   const renderContent = () => {
     switch (activeTab) {
+      case "dashboard":
+        return <DashboardOverview onNavigate={setActiveTab} />;
       case "crop":
         return <CropRecommendation />;
       case "disease":
