@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Users, MessageCircle, Send, Plus, Trash2, ChevronDown, ChevronUp,
-  Sprout, Bug, TrendingUp, HelpCircle, Lightbulb, ImagePlus, X,
+  Sprout, Bug, TrendingUp, HelpCircle, Lightbulb, ImagePlus, X, Heart,
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
