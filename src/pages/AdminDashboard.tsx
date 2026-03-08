@@ -576,6 +576,8 @@ const AdminDashboard = () => {
                 </div>
 
                 <p className="text-sm text-muted-foreground">{filteredOrders.length} orders found</p>
+
+                {filteredOrders.length === 0 ? (
                   <div className="bg-card border border-border rounded-xl p-10 text-center">
                     <Package className="h-12 w-12 mx-auto mb-3 text-muted-foreground/30" />
                     <p className="text-muted-foreground font-medium">No orders found</p>
