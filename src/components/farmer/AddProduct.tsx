@@ -72,8 +72,73 @@ const AddProduct = () => {
       toast({ title: "Image must be under 5MB", variant: "destructive" });
       return;
     }
-    setImageFile(file);
-    setImagePreview(URL.createObjectURL(file));
+    const reader = new FileReader();
+    reader.onload = () => {
+      setRawImageSrc(reader.result as string);
+      setShowCropper(true);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const onImageLoad = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
+    const { width, height } = e.currentTarget;
+    const initialCrop = centerCrop(
+      makeAspectCrop({ unit: "%", width: 90 }, 4 / 3, width, height),
+      width,
+      height
+    );
+    setCrop(initialCrop);
+  }, []);
+
+  const getCroppedImage = (): Promise<File | null> => {
+    return new Promise((resolve) => {
+      const image = imgRef.current;
+      if (!image || !crop) { resolve(null); return; }
+
+      const canvas = document.createElement("canvas");
+      const scaleX = image.naturalWidth / image.width;
+      const scaleY = image.naturalHeight / image.height;
+
+      const pixelCrop = {
+        x: (crop.x / 100) * image.width * scaleX,
+        y: (crop.y / 100) * image.height * scaleY,
+        width: (crop.width / 100) * image.width * scaleX,
+        height: (crop.height / 100) * image.height * scaleY,
+      };
+
+      // Resize to max 800px wide for consistency
+      const maxWidth = 800;
+      const ratio = Math.min(maxWidth / pixelCrop.width, 1);
+      canvas.width = pixelCrop.width * ratio;
+      canvas.height = pixelCrop.height * ratio;
+
+      const ctx = canvas.getContext("2d");
+      if (!ctx) { resolve(null); return; }
+
+      ctx.drawImage(
+        image,
+        pixelCrop.x, pixelCrop.y, pixelCrop.width, pixelCrop.height,
+        0, 0, canvas.width, canvas.height
+      );
+
+      canvas.toBlob((blob) => {
+        if (blob) {
+          resolve(new File([blob], `product-${Date.now()}.jpg`, { type: "image/jpeg" }));
+        } else {
+          resolve(null);
+        }
+      }, "image/jpeg", 0.85);
+    });
+  };
+
+  const handleCropConfirm = async () => {
+    const croppedFile = await getCroppedImage();
+    if (croppedFile) {
+      setImageFile(croppedFile);
+      setImagePreview(URL.createObjectURL(croppedFile));
+    }
+    setShowCropper(false);
+    setRawImageSrc(null);
   };
 
   const uploadImage = async (): Promise<string | null> => {
