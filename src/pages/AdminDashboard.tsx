@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 import {
   Check, X, LogOut, Shield, Users, Package, LayoutDashboard,
   TrendingUp, ShoppingBag, Sprout, Search, RefreshCw, BarChart3,
-  Clock, CheckCircle2, Truck, MapPin, Trash2, UserCog, CalendarIcon
+  Clock, CheckCircle2, Truck, MapPin, Trash2, UserCog, CalendarIcon, Download
 } from "lucide-react";
 import logo from "@/assets/logo.png";
 
@@ -249,6 +249,30 @@ const AdminDashboard = () => {
     const matchesDateTo = !dateTo || orderDate <= new Date(dateTo.getTime() + 86400000);
     return matchesStatus && matchesPayment && matchesSearch && matchesDateFrom && matchesDateTo;
   });
+
+  const exportOrdersCSV = () => {
+    if (filteredOrders.length === 0) return;
+    const headers = ["Order ID", "Product", "Customer", "Farmer", "Quantity", "Total Price", "Status", "Payment Method", "Date"];
+    const rows = filteredOrders.map((o: any) => [
+      o.id,
+      `"${(o.product_name || "").replace(/"/g, '""')}"`,
+      `"${(o.customer_name || "").replace(/"/g, '""')}"`,
+      `"${(o.farmer_name || "").replace(/"/g, '""')}"`,
+      o.quantity,
+      o.total_price,
+      o.status,
+      o.payment_method || "",
+      new Date(o.created_at).toLocaleDateString(),
+    ]);
+    const csv = [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `orders-${format(new Date(), "yyyy-MM-dd")}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   const statusColor: Record<string, string> = {
     pending: "bg-amber-100 text-amber-800", confirmed: "bg-blue-100 text-blue-800",
@@ -575,7 +599,12 @@ const AdminDashboard = () => {
                   )}
                 </div>
 
-                <p className="text-sm text-muted-foreground">{filteredOrders.length} orders found</p>
+                <div className="flex items-center justify-between">
+                  <p className="text-sm text-muted-foreground">{filteredOrders.length} orders found</p>
+                  <Button variant="outline" size="sm" className="h-9 text-xs gap-1.5" onClick={exportOrdersCSV} disabled={filteredOrders.length === 0}>
+                    <Download className="h-3.5 w-3.5" /> Export CSV
+                  </Button>
+                </div>
 
                 {filteredOrders.length === 0 ? (
                   <div className="bg-card border border-border rounded-xl p-10 text-center">
