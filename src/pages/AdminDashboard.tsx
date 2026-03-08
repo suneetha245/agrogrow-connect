@@ -62,6 +62,8 @@ const AdminDashboard = () => {
   const [userSearch, setUserSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
   const [orderFilter, setOrderFilter] = useState("all");
+  const [managingUserId, setManagingUserId] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
 
   useEffect(() => {
     loadAll();
