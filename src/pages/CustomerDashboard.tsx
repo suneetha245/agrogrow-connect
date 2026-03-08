@@ -89,6 +89,13 @@ const CustomerDashboard = () => {
   });
   const [savingProfile, setSavingProfile] = useState(false);
 
+  // Review state
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [reviewingOrderId, setReviewingOrderId] = useState<string | null>(null);
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewComment, setReviewComment] = useState("");
+  const [submittingReview, setSubmittingReview] = useState(false);
+
   useEffect(() => {
     if (profile) {
       setProfileForm({
