@@ -46,6 +46,17 @@ interface Order {
   payment_method: string | null;
   created_at: string;
   products?: { name: string; price: number; unit: string | null; image_url: string | null } | null;
+  product_id: string;
+}
+
+interface Review {
+  id: string;
+  product_id: string;
+  order_id: string;
+  customer_id: string;
+  rating: number;
+  comment: string | null;
+  created_at: string;
 }
 
 const CATEGORIES = ["All", "Vegetables", "Fruits", "Grains", "Spices", "Dairy", "Other"];
