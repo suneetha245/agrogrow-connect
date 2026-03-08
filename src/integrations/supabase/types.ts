@@ -14,6 +14,57 @@ export type Database = {
   }
   public: {
     Tables: {
+      disease_detections: {
+        Row: {
+          affected_crop: string | null
+          causes: Json | null
+          confidence: string | null
+          created_at: string
+          description: string | null
+          detected: boolean
+          disease_name: string
+          id: string
+          image_url: string | null
+          prevention: Json | null
+          severity: string | null
+          symptoms: Json | null
+          treatment: Json | null
+          user_id: string
+        }
+        Insert: {
+          affected_crop?: string | null
+          causes?: Json | null
+          confidence?: string | null
+          created_at?: string
+          description?: string | null
+          detected?: boolean
+          disease_name: string
+          id?: string
+          image_url?: string | null
+          prevention?: Json | null
+          severity?: string | null
+          symptoms?: Json | null
+          treatment?: Json | null
+          user_id: string
+        }
+        Update: {
+          affected_crop?: string | null
+          causes?: Json | null
+          confidence?: string | null
+          created_at?: string
+          description?: string | null
+          detected?: boolean
+          disease_name?: string
+          id?: string
+          image_url?: string | null
+          prevention?: Json | null
+          severity?: string | null
+          symptoms?: Json | null
+          treatment?: Json | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       farmer_details: {
         Row: {
           approval_status: Database["public"]["Enums"]["approval_status"]
